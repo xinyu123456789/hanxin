@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}心理資源 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen screen-wide">
+
+  <div class="page-head">
+    <span class="eyebrow" style="color:var(--butter-deep);background:var(--butter-tint)">📚 心理資源</span>
+    <h1 class="page-title">慢慢補充，心的養分</h1>
+    <p class="page-sub">結構化的科普文章、專業機構的標準量表，以及值得收藏的影片與 Podcast，陪你更認識自己。</p>
+  </div>
+
+  {# ── Chip 分頁（Alpine 純前端切換） ── #}
+  <div x-data="{tab: 'article'}">
+
+    <div class="row wrap" style="gap:8px;margin-bottom:20px">
+      <button class="chip" :class="tab==='article' ? 'on' : ''"
+              @click="tab='article'" style="padding:10px 18px;font-size:15px">📚 心理科普</button>
+      <button class="chip" :class="tab==='novel' ? 'on' : ''"
+              @click="tab='novel'" style="padding:10px 18px;font-size:15px">✍️ AI 小說</button>
+      <button class="chip" :class="tab==='transcript' ? 'on' : ''"
+              @click="tab='transcript'" style="padding:10px 18px;font-size:15px">🎙️ 逐字稿</button>
+      <button class="chip" :class="tab==='scale' ? 'on' : ''"
+              @click="tab='scale'" style="padding:10px 18px;font-size:15px">📝 專業量表</button>
+      <button class="chip" :class="tab==='video' ? 'on' : ''"
+              @click="tab='video'" style="padding:10px 18px;font-size:15px">🎬 影片頻道</button>
+      <button class="chip" :class="tab==='pod' ? 'on' : ''"
+              @click="tab='pod'" style="padding:10px 18px;font-size:15px">🎧 Podcast</button>
+    </div>
+
+    {# ── 心理科普文章（含分類篩選）── #}
+    <div x-show="tab==='article'" x-cloak class="enter-tab"
+         x-data="{
+           cat: '全部',
+           articleCats: [{% for article in articles %}'{{ article.category|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+           get hasResults() {
+             return this.articleCats.length === 0 || this.cat === '全部' || this.articleCats.includes(this.cat);
+           }
+         }">
+
+      {# 排序 chips #}
+      <div class="row wrap" style="gap:7px;margin-bottom:12px">
+        <a href="?sort=newest" class="chip btn-sm {% if current_sort != 'popular' %}on{% endif %}"
+           style="text-decoration:none">📅 最新</a>
+        <a href="?sort=popular" class="chip btn-sm {% if current_sort == 'popular' %}on{% endif %}"
+           style="text-decoration:none">🔥 最多人看</a>
+      </div>
+
+      {# 分類篩選 chips #}
+      <div class="row wrap" style="gap:7px;margin-bottom:18px">
+        <button class="chip btn-sm" :class="cat==='全部' ? 'on' : ''"
+                @click="cat='全部'" type="button">全部</button>
+        {% for val, label in article_categories %}
+        <button class="chip btn-sm" :class="cat==='{{ val|escapejs }}' ? 'on' : ''"
+                @click="cat='{{ val|escapejs }}'" type="button">{{ label }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="grid grid-3">
+        {% for article in articles %}
+        <a href="{% url 'article_detail' article.pk %}" class="card-flat soft"
+           x-show="cat === '全部' || cat === '{{ article.category|escapejs }}'"
+           style="padding:18px;display:flex;flex-direction:column;gap:9px;text-decoration:none;
+                  transition:transform .14s"
+           onmouseenter="this.style.transform='translateY(-3px)'"
+           onmouseleave="this.style.transform=''">
+          <div class="row between">
+            <span class="tag
+              {% if article.category == '情緒覺察' or article.category == '人際關係' %}b
+              {% elif article.category == '焦慮' %}v
+              {% elif article.category == '睡眠' %}y{% endif %}">
+              {{ article.category }}
+            </span>
+            <div class="row" style="gap:8px">
+              {% if article.view_count %}<span class="faint" style="font-size:12px">👁 {{ article.view_count }}</span>{% endif %}
+              <span class="faint" style="font-size:12.5px">📖 {{ article.read_minutes }} 分鐘</span>
+            </div>
+          </div>
+          <h3 style="margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink)">{{ article.title }}</h3>
+          <p class="muted" style="margin:0;font-size:14px;line-height:1.6">{{ article.excerpt }}</p>
+          <span style="margin-top:auto;padding-top:6px;color:var(--peach-deep);font-weight:700;font-size:14px">閱讀全文 →</span>
+        </a>
+        {% empty %}
+        <div class="card center" style="grid-column:1/-1;padding:48px">
+          <p class="muted">文章即將上線，敬請期待。</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      {# 分類篩選後無結果時的空狀態（只有資料庫有文章但此分類為空才顯示） #}
+      <div x-show="!hasResults" x-cloak style="padding:56px 24px;text-align:center">
+        <div style="font-size:44px;margin-bottom:14px">🌱</div>
+        <p style="margin:0 0 6px;font-size:17px;font-weight:700;color:var(--ink)">這個分類還沒有文章</p>
+        <p class="muted" style="margin:0 0 20px;font-size:14px;line-height:1.7">
+          我們正在整理相關內容，敬請期待上線。
+        </p>
+        <button class="btn btn-ghost" @click="cat='全部'">查看全部文章</button>
+      </div>
+    </div>
+
+    {# ── AI 小說 ── #}
+    <div x-show="tab==='novel'" x-cloak class="enter-tab">
+      <div class="card" style="margin-bottom:16px;background:var(--lilac-tint);border-color:var(--lilac)">
+        <p style="font-size:13.5px;line-height:1.7;margin:0;color:var(--ink)">
+          ✍️ <b>AI 小說</b>：以心理學論文為素材，由 AI 創作的小說。故事中的心理學知識來自真實研究，但情節為虛構。
+        </p>
+      </div>
+      <div class="grid grid-3">
+        {% for article in novels %}
+        <a href="{% url 'article_detail' article.pk %}" class="card-flat soft"
+           style="padding:18px;display:flex;flex-direction:column;gap:9px;text-decoration:none;transition:transform .14s"
+           onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+          <div class="row between">
+            <span class="tag v">✍️ AI 小說</span>
+            <div class="row" style="gap:8px">
+              {% if article.view_count %}<span class="faint" style="font-size:12px">👁 {{ article.view_count }}</span>{% endif %}
+              <span class="faint" style="font-size:12.5px">📖 {{ article.read_minutes }} 分鐘</span>
+            </div>
+          </div>
+          <h3 style="margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink)">{{ article.title }}</h3>
+          <p class="muted" style="margin:0;font-size:14px;line-height:1.6">{{ article.excerpt }}</p>
+          <span style="margin-top:auto;padding-top:6px;color:var(--lilac-deep);font-weight:700;font-size:14px">閱讀小說 →</span>
+        </a>
+        {% empty %}
+        <div class="card center" style="grid-column:1/-1;padding:48px"><p class="muted">小說即將上線。</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── 逐字稿 ── #}
+    <div x-show="tab==='transcript'" x-cloak class="enter-tab">
+      <div class="card" style="margin-bottom:16px;background:var(--sky-tint);border-color:var(--sky)">
+        <p style="font-size:13.5px;line-height:1.7;margin:0;color:var(--ink)">
+          🎙️ <b>逐字稿</b>：以心理學論文改寫的 Podcast 風格文章，適合用輕鬆的方式吸收知識。
+        </p>
+      </div>
+      <div class="grid grid-3">
+        {% for article in transcripts %}
+        <a href="{% url 'article_detail' article.pk %}" class="card-flat soft"
+           style="padding:18px;display:flex;flex-direction:column;gap:9px;text-decoration:none;transition:transform .14s"
+           onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+          <div class="row between">
+            <span class="tag b">🎙️ 逐字稿</span>
+            <div class="row" style="gap:8px">
+              {% if article.view_count %}<span class="faint" style="font-size:12px">👁 {{ article.view_count }}</span>{% endif %}
+              <span class="faint" style="font-size:12.5px">📖 {{ article.read_minutes }} 分鐘</span>
+            </div>
+          </div>
+          <h3 style="margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.4;color:var(--ink)">{{ article.title }}</h3>
+          <p class="muted" style="margin:0;font-size:14px;line-height:1.6">{{ article.excerpt }}</p>
+          <span style="margin-top:auto;padding-top:6px;color:var(--sky-deep);font-weight:700;font-size:14px">閱讀逐字稿 →</span>
+        </a>
+        {% empty %}
+        <div class="card center" style="grid-column:1/-1;padding:48px"><p class="muted">逐字稿即將上線。</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── 專業量表 ── #}
+    <div x-show="tab==='scale'" x-cloak class="enter-tab">
+      {# 免責聲明 #}
+      <div class="row" style="gap:11px;padding:13px 16px;border-radius:16px;background:var(--butter-tint);
+           border:2px solid var(--butter);margin-bottom:18px;align-items:flex-start">
+        <span style="font-size:20px;flex:0 0 auto">📋</span>
+        <p style="margin:0;font-size:13.5px;color:var(--ink);line-height:1.6">
+          以下量表與內容皆為自我覺察的參考，<b>不能取代專業診斷</b>。量表連結將開啟外部專業機構網站。
+          若有困擾，請尋求合格的心理師或身心科醫師協助。
+        </p>
+      </div>
+      <div class="grid grid-3">
+        {% for scale in scales %}
+        <a href="{{ scale.external_url }}" target="_blank" rel="noopener noreferrer"
+           class="card-flat soft" style="padding:18px;text-decoration:none;display:flex;flex-direction:column;gap:7px;transition:transform .14s"
+           onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+          <div class="row between" style="align-items:flex-start">
+            <h3 style="margin:0;font-size:17px;font-weight:700;line-height:1.4">{{ scale.name }}</h3>
+            <span style="font-size:18px;flex:0 0 auto">↗</span>
+          </div>
+          <span class="tag b" style="align-self:flex-start">{{ scale.org }}</span>
+          {% if scale.note %}<p class="muted" style="margin:0;font-size:13.5px;line-height:1.6">{{ scale.note }}</p>{% endif %}
+        </a>
+        {% empty %}
+        <div class="card center" style="grid-column:1/-1;padding:48px"><p class="muted">量表即將上線。</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── 影片頻道 ── #}
+    <div x-show="tab==='video'" x-cloak class="enter-tab">
+      <div class="grid grid-2">
+        {% for video in videos %}
+        <a href="{{ video.url }}" target="_blank" rel="noopener noreferrer"
+           class="card-flat soft" style="padding:16px;text-decoration:none;display:flex;gap:13px;align-items:center;transition:transform .14s"
+           onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+          <span style="width:48px;height:48px;border-radius:15px;flex:0 0 auto;display:grid;place-items:center;
+            font-size:24px;background:var(--peach-tint)">▶️</span>
+          <div style="flex:1;min-width:0">
+            <div class="row" style="gap:7px">
+              <span style="font-weight:700;font-size:16px">{{ video.name }}</span>
+              {% if video.lang %}<span class="tag" style="font-size:11px">{{ video.lang }}</span>{% endif %}
+            </div>
+            {% if video.desc %}<p class="muted" style="margin:2px 0 0;font-size:13.5px">{{ video.desc }}</p>{% endif %}
+          </div>
+          <span style="font-size:18px;flex:0 0 auto;color:var(--ink-faint)">↗</span>
+        </a>
+        {% empty %}
+        <div class="card center" style="grid-column:1/-1;padding:48px"><p class="muted">影片即將上線。</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── Podcast ── #}
+    <div x-show="tab==='pod'" x-cloak class="enter-tab">
+      <div class="grid grid-2">
+        {% for pod in podcasts %}
+        <a href="{{ pod.url }}" target="_blank" rel="noopener noreferrer"
+           class="card-flat soft" style="padding:16px;text-decoration:none;display:flex;gap:13px;align-items:center;transition:transform .14s"
+           onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+          <span style="width:48px;height:48px;border-radius:15px;flex:0 0 auto;display:grid;place-items:center;
+            font-size:24px;background:var(--lilac-tint)">🎧</span>
+          <div style="flex:1;min-width:0">
+            <span style="font-weight:700;font-size:16px;display:block">{{ pod.name }}</span>
+            {% if pod.desc %}<p class="muted" style="margin:2px 0 0;font-size:13.5px">{{ pod.desc }}</p>{% endif %}
+          </div>
+          <span style="font-size:18px;flex:0 0 auto;color:var(--ink-faint)">↗</span>
+        </a>
+        {% empty %}
+        <div class="card center" style="grid-column:1/-1;padding:48px"><p class="muted">Podcast 即將上線。</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

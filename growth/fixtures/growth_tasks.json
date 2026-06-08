@@ -1,0 +1,62 @@
+[
+  {
+    "model": "growth.dailytask",
+    "pk": 1,
+    "fields": {
+      "label": "去曬 5 分鐘太陽",
+      "icon": "☀️",
+      "sort_order": 1,
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "growth.dailytask",
+    "pk": 2,
+    "fields": {
+      "label": "喝一杯溫開水",
+      "icon": "💧",
+      "sort_order": 2,
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "growth.dailytask",
+    "pk": 3,
+    "fields": {
+      "label": "讚美自己一句",
+      "icon": "💛",
+      "sort_order": 3,
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "growth.dailytask",
+    "pk": 4,
+    "fields": {
+      "label": "散步或伸展一下",
+      "icon": "🌿",
+      "sort_order": 4,
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "growth.dailytask",
+    "pk": 5,
+    "fields": {
+      "label": "做 3 次深呼吸",
+      "icon": "🫧",
+      "sort_order": 5,
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  }
+]

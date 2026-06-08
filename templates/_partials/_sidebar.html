@@ -1,0 +1,58 @@
+{% load static %}
+{% url 'home' as url_home %}
+{% url 'chat' as url_chat %}
+{% url 'board' as url_board %}
+{% url 'grow' as url_grow %}
+{% url 'resources' as url_resources %}
+{% url 'clinics' as url_clinics %}
+
+<aside class="sidebar">
+  <a class="brand" href="{{ url_home }}" style="text-decoration:none;cursor:pointer">
+    <div class="brand-mark"><span>🧸</span></div>
+    <div>
+      <div class="brand-name">涵心</div>
+      <div class="brand-sub">陪你慢慢好起來</div>
+    </div>
+  </a>
+
+  <nav class="nav">
+    <a class="nav-item{% if request.resolver_match.url_name == 'home' %} active{% endif %}" href="{{ url_home }}">
+      <span class="ico">🏠</span>首頁
+    </a>
+    <a class="nav-item{% if request.resolver_match.url_name == 'chat' %} active{% endif %}" href="{{ url_chat }}">
+      <span class="ico">🧸</span>涵涵
+    </a>
+    <a class="nav-item{% if request.resolver_match.url_name == 'board' %} active{% endif %}" href="{{ url_board }}">
+      <span class="ico">🌦️</span>心情看板
+    </a>
+    <a class="nav-item{% if request.resolver_match.url_name == 'grow' %} active{% endif %}" href="{{ url_grow }}">
+      <span class="ico">🌱</span>誇誇成長
+    </a>
+    <a class="nav-item{% if request.resolver_match.url_name == 'resources' %} active{% endif %}" href="{{ url_resources }}">
+      <span class="ico">📚</span>心理資源
+    </a>
+    <a class="nav-item{% if request.resolver_match.url_name == 'clinics' %} active{% endif %}" href="{{ url_clinics }}">
+      <span class="ico">📍</span>診所指南
+    </a>
+  </nav>
+
+  <div class="nav-spacer"></div>
+
+  {% if user.is_authenticated %}
+  <a class="nav-item" href="{% url 'settings_ai' %}" style="font-size:13px;opacity:.8">
+    <span class="ico">⚙️</span>個人設定
+  </a>
+  <a class="nav-item" href="{% url 'account_logout' %}" style="font-size:13px;opacity:.8">
+    <span class="ico">👋</span>登出
+  </a>
+  {% else %}
+  <a class="nav-item" href="{% url 'account_login' %}" style="font-size:13px">
+    <span class="ico">🔑</span>登入 / 註冊
+  </a>
+  {% endif %}
+
+  <div class="nav-foot">
+    🆘 緊急求助<br/>
+    安心專線 <b style="color:var(--peach-deep)">1925</b> · 生命線 <b style="color:var(--sage-deep)">1995</b>
+  </div>
+</aside>

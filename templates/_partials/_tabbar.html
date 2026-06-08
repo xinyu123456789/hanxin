@@ -1,0 +1,26 @@
+{# 手機底部 Tab — 六個功能都放進來（修正原型診所指南缺席的問題） #}
+<nav class="tabbar">
+  <a class="tab{% if request.resolver_match.url_name == 'home' %} active{% endif %}" href="{% url 'home' %}">
+    <span class="ico">🏠</span>首頁
+  </a>
+  <a class="tab{% if request.resolver_match.url_name == 'chat' %} active{% endif %}" href="{% url 'chat' %}">
+    <span class="ico">🧸</span>涵涵
+  </a>
+  <a class="tab{% if request.resolver_match.url_name == 'board' %} active{% endif %}" href="{% url 'board' %}">
+    <span class="ico">🌦️</span>看板
+  </a>
+  <a class="tab{% if request.resolver_match.url_name == 'grow' %} active{% endif %}" href="{% url 'grow' %}">
+    <span class="ico">🌱</span>成長
+  </a>
+  <a class="tab{% if request.resolver_match.url_name == 'resources' %} active{% endif %}" href="{% url 'resources' %}">
+    <span class="ico">📚</span>資源
+  </a>
+  <a class="tab{% if request.resolver_match.url_name == 'clinics' %} active{% endif %}" href="{% url 'clinics' %}">
+    <span class="ico">📍</span>診所
+  </a>
+  {% if not user.is_authenticated %}
+  <a class="tab{% if request.resolver_match.url_name == 'account_login' %} active{% endif %}" href="{% url 'account_login' %}">
+    <span class="ico">🔑</span>登入
+  </a>
+  {% endif %}
+</nav>

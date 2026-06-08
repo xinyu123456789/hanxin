@@ -1,0 +1,137 @@
+[
+  {
+    "model": "board.preseticon",
+    "pk": 1,
+    "fields": {
+      "image_path": "img/assets/mood-sun.jpg",
+      "emotion_type": "sun",
+      "label": "晴朗",
+      "desc": "今天心裡有陽光",
+      "tint_var": "var(--butter-tint)",
+      "ring_var": "var(--butter-deep)",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "board.preseticon",
+    "pk": 2,
+    "fields": {
+      "image_path": "img/assets/mood-breeze.jpg",
+      "emotion_type": "breeze",
+      "label": "微風",
+      "desc": "平靜、還算安穩",
+      "tint_var": "var(--sage-tint)",
+      "ring_var": "var(--sage-deep)",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "board.preseticon",
+    "pk": 3,
+    "fields": {
+      "image_path": "img/assets/mood-rainbow.png",
+      "emotion_type": "rainbow",
+      "label": "雨後彩虹",
+      "desc": "撐過去了，鬆口氣",
+      "tint_var": "var(--lilac-tint)",
+      "ring_var": "var(--lilac-deep)",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "board.preseticon",
+    "pk": 4,
+    "fields": {
+      "image_path": "img/assets/mood-cloud.jpg",
+      "emotion_type": "cloud",
+      "label": "烏雲",
+      "desc": "有點低落、提不起勁",
+      "tint_var": "var(--sky-tint)",
+      "ring_var": "var(--sky-deep)",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "board.preseticon",
+    "pk": 5,
+    "fields": {
+      "image_path": "img/assets/mood-rain.jpg",
+      "emotion_type": "rain",
+      "label": "大雨",
+      "desc": "好難過，好想哭",
+      "tint_var": "var(--sky-tint)",
+      "ring_var": "var(--sky-deep)",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "board.preseticon",
+    "pk": 6,
+    "fields": {
+      "image_path": "img/assets/mood-storm.jpg",
+      "emotion_type": "storm",
+      "label": "閃電",
+      "desc": "焦慮、煩躁、壓力大",
+      "tint_var": "var(--lilac-tint)",
+      "ring_var": "var(--lilac-deep)",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 1,
+    "fields": { "content": "辛苦了，你已經很努力了", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 2,
+    "fields": { "content": "我懂你，這真的不容易", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 3,
+    "fields": { "content": "慢慢來，沒關係的", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 4,
+    "fields": { "content": "你願意撐著，真的很勇敢", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 5,
+    "fields": { "content": "今天有好好吃飯了嗎", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 6,
+    "fields": { "content": "明天會比今天更亮一點", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 7,
+    "fields": { "content": "謝謝你願意說出來", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 8,
+    "fields": { "content": "抱一個，你不孤單", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "board.presetmessage",
+    "pk": 9,
+    "fields": { "content": "你的存在本身就很好", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  }
+]

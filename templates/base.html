@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>{% block title %}涵心 · 心理健康支援平台{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧸</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Huninn&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}"/>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <style>
+    :root{ {{ prefs_css|safe }} }
+    [x-cloak]{ display:none !important; }
+    /* 全站超連結不顯示底線 */
+    a{ text-decoration:none; }
+    /* 全站表單輸入框統一暖色調樣式 */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+    textarea,
+    select {
+      width:100%; padding:13px 18px; border-radius:16px; font-size:16px;
+      border:2px solid var(--line); background:var(--surface-2); color:var(--ink);
+      font-family:var(--font); outline:none;
+      transition:border-color .18s, box-shadow .18s;
+      box-sizing:border-box;
+    }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):focus,
+    textarea:focus,
+    select:focus {
+      border-color:var(--accent); box-shadow:var(--ring);
+    }
+    textarea{ resize:vertical; min-height:100px; line-height:1.6; }
+    select{ cursor:pointer; }
+    /* 保留 .form-input class 相容性 */
+    .form-input{ border-radius:16px; }
+    /* 手機版響應式修正 */
+    @media (max-width: 500px) {
+      /* 首頁任務+樹：手機版單欄，避免文字被擠成直排 */
+      .home-main-grid { grid-template-columns: 1fr !important; }
+      /* grid-2 / grid-3 改單欄 */
+      .grid-2 { grid-template-columns: 1fr !important; }
+      .grid-3 { grid-template-columns: 1fr !important; }
+      /* 看板天氣選擇器：6欄 → 3欄，圖示更大 */
+      .mood-grid { grid-template-columns: repeat(3, 1fr) !important; }
+      /* 看板貼文天氣大圖縮小 */
+      .board-post-img { width:60px !important; height:60px !important; }
+      /* 防止任何元素溢出螢幕 */
+      .screen { overflow-x: hidden; }
+    }
+    /* 頭像按鈕（topbar 帳號選單） */
+    @media (max-width: 500px) {
+      .grid-2 { grid-template-columns: 1fr !important; }
+      .grid-3 { grid-template-columns: 1fr !important; }
+    }
+    /* 頭像按鈕（topbar 帳號選單） */
+    .avatar-btn {
+      width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+      cursor:pointer; transition:transform .18s, box-shadow .18s;
+      background:var(--accent) !important;
+      border:2.5px solid #fff !important;
+      box-shadow:0 0 0 2px var(--accent), 0 6px 14px -8px var(--accent-deep);
+      font-size:15px; font-weight:800; color:#fff !important; font-family:var(--font);
+      line-height:1;
+    }
+    .avatar-btn--open, .avatar-btn:hover {
+      transform:scale(1.08);
+      box-shadow:0 0 0 2px var(--accent-deep), 0 8px 18px -8px var(--accent-deep);
+    }
+    /* 自訂 checkbox（隱藏原生，用偽元素畫） */
+    input[type="checkbox"]{
+      appearance:none; -webkit-appearance:none;
+      width:22px; height:22px; border-radius:8px; flex:0 0 auto;
+      border:2px solid var(--line); background:var(--surface-2);
+      cursor:pointer; position:relative; transition:all .18s;
+    }
+    input[type="checkbox"]:checked{
+      background:var(--accent); border-color:var(--accent-deep);
+    }
+    input[type="checkbox"]:checked::after{
+      content:"✓"; position:absolute; inset:0; display:grid;
+      place-items:center; color:#fff; font-size:13px; font-weight:800;
+    }
+    /* 登入/設定頁使用 */
+    .auth-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .soft{ box-shadow: var(--shadow-soft); }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body style="{% if prefs and not prefs.soft_bg %}background:var(--paper);{% endif %}{% if prefs_zoom and prefs_zoom != 100 %}zoom:{{ prefs_zoom }}%;{% endif %}">
+<div class="app{% if "/accounts/" in request.path %} app--auth{% endif %}">
+
+  {% if "/accounts/" not in request.path %}{% include "_partials/_sidebar.html" %}{% endif %}
+
+  <main class="main">
+    {% if "/accounts/" not in request.path %}{% include "_partials/_topbar.html" %}{% endif %}
+
+    {# Toast 訊息 #}
+    {% if messages %}
+    <div style="position:fixed;top:72px;right:16px;z-index:200;max-width:340px;pointer-events:none">
+      {% for msg in messages %}
+      <div x-data="{show:true}" x-show="show" x-transition x-init="setTimeout(()=>show=false,4000)"
+           style="pointer-events:auto;margin-bottom:8px;padding:13px 18px;border-radius:16px;
+           border:2px solid;box-shadow:var(--shadow-card);font-size:14.5px;font-weight:600;
+           {% if msg.tags == 'error' %}background:var(--peach-tint);border-color:var(--peach);color:var(--peach-deep);
+           {% elif msg.tags == 'success' %}background:var(--sage-tint);border-color:var(--sage);color:var(--sage-deep);
+           {% else %}background:var(--sky-tint);border-color:var(--sky);color:var(--sky-deep);{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block screen %}{% endblock %}
+
+    {% if "/accounts/" not in request.path %}{% include "_partials/_tabbar.html" %}{% endif %}
+  </main>
+
+  {# ── 心情打卡浮動提示（從外部進入且今天未打卡時顯示） ── #}
+  {% if show_mood_reminder %}
+  <div x-data="{show: true}" x-show="show" x-cloak x-transition
+       x-init="setTimeout(() => show = false, 10000)"
+       style="position:fixed;{% if notify_warmth %}top:130px{% else %}top:72px{% endif %};right:16px;z-index:400;
+              background:var(--sky-tint);border:2px solid var(--sky);
+              border-radius:16px;padding:13px 16px;max-width:280px;
+              box-shadow:0 8px 24px -8px rgba(100,160,200,.3)">
+    <p style="font-size:13.5px;font-weight:700;color:var(--ink);margin:0 0 8px">
+      🌤️ 今天還沒有記錄心情
+    </p>
+    <a href="{% url 'grow' %}" @click="show = false"
+       class="btn btn-sm" style="font-size:12px;width:100%;text-align:center;display:block">
+      去記錄今日心情
+    </a>
+  </div>
+  {% endif %}
+
+  {# ── 暖意通知浮動條（從外部進入且有暖意時顯示 20 秒） ── #}
+  {% if notify_warmth %}
+  <div x-data="{show: true}" x-show="show" x-cloak x-transition
+       x-init="setTimeout(() => show = false, 10000)"
+       style="position:fixed;top:72px;right:16px;z-index:400;max-width:300px;
+              background:var(--peach-tint);border:2px solid var(--peach);
+              border-radius:16px;padding:13px 16px;
+              box-shadow:0 8px 24px -8px rgba(199,100,80,.35);
+              display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;
+              color:var(--peach-deep)">
+    <span>❤️ 你發布的心情共收到 {{ notify_warmth }} 份暖意</span>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+  document.body.addEventListener('htmx:configRequest', function(e){
+    e.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+  });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

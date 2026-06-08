@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}登出 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen" style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+  <div class="card knit center" style="max-width:380px;width:100%;padding:32px">
+    <div style="font-size:48px;margin-bottom:12px">👋</div>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">確定要登出嗎？</h2>
+    <p class="muted" style="margin-bottom:20px">隨時歡迎回來，涵涵會在這裡等你。</p>
+    <form method="post" action="{% url 'account_logout' %}">
+      {% csrf_token %}
+      <button class="btn btn-lg" type="submit" style="width:100%">登出</button>
+    </form>
+    <a class="btn btn-ghost btn-sm" href="{% url 'home' %}" style="margin-top:12px;display:block;text-align:center">
+      取消，留下來
+    </a>
+  </div>
+</div>
+{% endblock %}

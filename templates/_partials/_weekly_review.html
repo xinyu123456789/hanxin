@@ -1,0 +1,145 @@
+{% load hanxin_tags %}
+
+{% if weekly_review_data.narrative %}
+
+{# ── 統計數字 ── #}
+<div class="grid grid-3" style="gap:10px;margin-bottom:18px">
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--sage-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--sage-deep)">{{ weekly_review_data.kudos_count }}</div>
+    <div class="muted" style="font-size:12px">誇誇筆記</div>
+  </div>
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--peach-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--peach-deep)">{{ weekly_review_data.task_completions }}</div>
+    <div class="muted" style="font-size:12px">任務完成（{{ weekly_review_data.task_rate }}%）</div>
+  </div>
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--sky-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--sky-deep)">{{ weekly_review_data.chat_user_messages }}</div>
+    <div class="muted" style="font-size:12px">與涵涵的訊息</div>
+  </div>
+  {% if weekly_review_data.avg_mood %}
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--lilac-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--lilac-deep)">{{ weekly_review_data.avg_mood }}</div>
+    <div class="muted" style="font-size:12px">平均情緒分數</div>
+  </div>
+  {% endif %}
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--butter-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--butter-deep)">{{ weekly_review_data.board_posts_count }}</div>
+    <div class="muted" style="font-size:12px">心情看板發布</div>
+  </div>
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--sage-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--sage-deep)">{{ weekly_review_data.articles_count }}</div>
+    <div class="muted" style="font-size:12px">閱讀文章</div>
+  </div>
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--sky-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--sky-deep)">{{ weekly_review_data.mood_count|default:0 }}</div>
+    <div class="muted" style="font-size:12px">記錄心情天數</div>
+  </div>
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--peach-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--peach-deep)">{{ weekly_review_data.reactions_sent|default:0 }}</div>
+    <div class="muted" style="font-size:12px">給出溫暖回應</div>
+  </div>
+  {% if weekly_review_data.situation_count %}
+  <div class="card-flat" style="padding:14px;text-align:center;background:var(--lilac-tint)">
+    <div style="font-size:26px;font-weight:800;color:var(--lilac-deep)">{{ weekly_review_data.situation_count }}</div>
+    <div class="muted" style="font-size:12px">情境題互動</div>
+  </div>
+  {% endif %}
+</div>
+
+{# ── Gemini 敘事（Markdown） ── #}
+<div class="article-body" style="font-size:15px;line-height:1.8">
+  {{ weekly_review_data.narrative|markdown }}
+</div>
+
+{# ── 重新生成按鈕（含動畫）── #}
+<div style="margin-top:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+  <button class="btn btn-ghost btn-sm"
+          hx-post="{% url 'review_generate' %}"
+          hx-target="#weekly-review-content"
+          hx-swap="innerHTML"
+          hx-indicator="#regen-loading"
+          hx-disabled-elt="this">
+    🔄 重新生成
+  </button>
+  <div id="regen-loading" class="htmx-indicator"
+       style="display:inline-flex;align-items:center;gap:8px">
+    <span style="display:inline-flex;gap:5px;align-items:center">
+      <i style="width:7px;height:7px;border-radius:50%;background:var(--accent);display:block;
+         animation:typingBob 1.2s infinite ease-in-out"></i>
+      <i style="width:7px;height:7px;border-radius:50%;background:var(--accent);display:block;
+         animation:typingBob 1.2s .18s infinite ease-in-out"></i>
+      <i style="width:7px;height:7px;border-radius:50%;background:var(--accent);display:block;
+         animation:typingBob 1.2s .36s infinite ease-in-out"></i>
+    </span>
+    <span class="faint" style="font-size:13px">重新生成中…</span>
+  </div>
+</div>
+
+{% elif weekly_review_data %}
+
+{# ── 生成失敗（資料有收集到但 Gemini 沒回傳）── #}
+<div class="center" style="padding:32px 0">
+  <div style="font-size:40px;margin-bottom:12px">😔</div>
+  <p style="font-size:16px;font-weight:700;color:var(--ink);margin:0 0 6px">這次生成沒有成功</p>
+  <p class="muted" style="margin:0 0 18px;font-size:14px;line-height:1.7">
+    可能是 AI 金鑰設定有問題，或是暫時連線失敗。<br/>稍後再試試看？
+  </p>
+  <button class="btn"
+          hx-post="{% url 'review_generate' %}"
+          hx-target="#weekly-review-content"
+          hx-swap="innerHTML"
+          hx-indicator="#review-loading-anim"
+          hx-disabled-elt="this">
+    🔄 重新嘗試生成
+  </button>
+  <div id="review-loading-anim" class="htmx-indicator"
+       style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+    <div class="card" style="padding:16px 24px;display:inline-flex;align-items:center;gap:12px;
+         background:linear-gradient(120deg,var(--peach-tint),var(--lilac-tint))">
+      <span style="display:inline-flex;gap:5px;align-items:center">
+        <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
+           animation:typingBob 1.2s infinite ease-in-out"></i>
+        <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
+           animation:typingBob 1.2s .18s infinite ease-in-out"></i>
+        <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
+           animation:typingBob 1.2s .36s infinite ease-in-out"></i>
+      </span>
+      <span style="font-size:14px;color:var(--ink-soft)">涵涵正在整理這週的點滴，稍等一下…</span>
+    </div>
+  </div>
+</div>
+
+{% else %}
+
+{# ── 尚未生成 ── #}
+<div class="center" style="padding:32px 0">
+  <div style="font-size:40px;margin-bottom:12px">📝</div>
+  <p class="muted" style="margin-bottom:16px">本週回顧還沒有生成</p>
+
+  <button class="btn"
+          hx-post="{% url 'review_generate' %}"
+          hx-target="#weekly-review-content"
+          hx-swap="innerHTML"
+          hx-indicator="#review-loading-anim"
+          hx-disabled-elt="this">
+    ✨ 生成本週回顧
+  </button>
+
+  <div id="review-loading-anim" class="htmx-indicator"
+       style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+    <div class="card" style="padding:16px 24px;display:inline-flex;align-items:center;gap:12px;
+         background:linear-gradient(120deg,var(--peach-tint),var(--lilac-tint))">
+      <span style="display:inline-flex;gap:5px;align-items:center">
+        <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
+           animation:typingBob 1.2s infinite ease-in-out"></i>
+        <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
+           animation:typingBob 1.2s .18s infinite ease-in-out"></i>
+        <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
+           animation:typingBob 1.2s .36s infinite ease-in-out"></i>
+      </span>
+      <span style="font-size:14px;color:var(--ink-soft)">涵涵正在整理這週的點滴，稍等一下…</span>
+    </div>
+  </div>
+</div>
+
+{% endif %}

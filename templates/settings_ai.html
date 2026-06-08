@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}AI 金鑰設定 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen">
+  <div class="page-head">
+    <span class="eyebrow">⚙️ 個人設定</span>
+    <h1 class="page-title">個人設定</h1>
+    <p class="page-sub">在這裡設定你的 Gemini AI 金鑰，讓涵涵可以陪你聊天。</p>
+  </div>
+
+  <div class="settings-layout">
+    {% include "_partials/_settings_nav.html" %}
+
+    <div>
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 18px">AI 金鑰</h2>
+
+      {# ── 說明卡（解釋 BYOK 設計） ── #}
+      {% if not ai.has_key %}
+      <div class="card" style="margin-bottom:16px;background:var(--sky-tint);border-color:var(--sky)">
+        <div style="font-weight:700;font-size:15px;margin-bottom:12px;color:var(--ink)">
+          🧸 為什麼需要 Gemini 金鑰？
+        </div>
+        <div style="font-size:13.5px;line-height:1.85;color:var(--ink-soft)">
+          <p style="margin:0 0 10px">
+            涵心是獨立開發的小平台，目前無法統一負擔 AI 費用，所以採用「自帶金鑰」的方式——
+            你使用自己 Google 帳號的 Gemini 免費額度，<b>對一般用量來說完全夠用</b>。
+          </p>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div class="row" style="gap:10px;align-items:flex-start">
+              <span style="flex:0 0 auto">🔒</span>
+              <span><b>金鑰加密儲存</b>：使用 AES-256 加密後才寫入資料庫，就算資料庫外洩也無法直接讀取你的金鑰。</span>
+            </div>
+            <div class="row" style="gap:10px;align-items:flex-start">
+              <span style="flex:0 0 auto">🛡️</span>
+              <span><b>僅限伺服器端使用</b>：金鑰只在後端呼叫 Gemini API 時才用，永遠不會出現在前端程式碼或瀏覽器中。</span>
+            </div>
+            <div class="row" style="gap:10px;align-items:flex-start">
+              <span style="flex:0 0 auto">🚫</span>
+              <span><b>不用於其他用途</b>：金鑰只用來把你的訊息轉發給 Google Gemini，不用於任何其他 API 呼叫，也不寫入任何 log。</span>
+            </div>
+            <div class="row" style="gap:10px;align-items:flex-start">
+              <span style="flex:0 0 auto">🗑️</span>
+              <span><b>隨時可以移除</b>：在此頁面點「移除金鑰」後，金鑰會從我們的系統完全清除，也可以直接在 Google AI Studio 撤銷。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {# 目前金鑰狀態 #}
+      {% if ai.has_key %}
+      <div class="card row between" style="margin-bottom:16px;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:14px;color:var(--ink-soft)">目前金鑰</div>
+          <div style="font-weight:600;font-size:16px;margin-top:2px">{{ ai.key_masked }}</div>
+          {% if ai.key_verified_at %}
+          <div class="muted" style="font-size:12px;margin-top:4px">
+            驗證於 {{ ai.key_verified_at|date:"Y/m/d H:i" }}
+          </div>
+          {% endif %}
+        </div>
+        <form method="post" style="flex-shrink:0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="remove"/>
+          <button class="btn btn-ghost btn-sm" type="submit"
+                  onclick="return confirm('確定要移除金鑰？移除後無法和涵涵聊天。')">
+            移除金鑰
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      {# 設定 / 更新金鑰表單 #}
+      <div class="card" style="margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:14px">
+          {% if ai.has_key %}更新金鑰{% else %}貼上你的金鑰{% endif %}
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div style="margin-bottom:14px">
+            {{ form.gemini_api_key }}
+            {% if form.gemini_api_key.errors %}
+            <div class="muted" style="color:var(--peach-deep);font-size:13px;margin-top:4px">
+              {{ form.gemini_api_key.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+          <button class="btn" type="submit">驗證並儲存 🔑</button>
+        </form>
+
+        <hr class="soft" style="margin:16px 0"/>
+
+        <div class="muted" style="font-size:13px;line-height:1.8">
+          <b>還沒有金鑰？三步驟取得：</b><br/>
+          1. 到 <b>Google AI Studio</b>（aistudio.google.com）登入你的 Google 帳號<br/>
+          2. 點「Get API key」→「建立 API 金鑰」，複製金鑰（通常以 <code>AIza…</code> 開頭）<br/>
+          3. 貼到上方欄位，按「驗證並儲存」即可開始使用。<br/>
+          <span style="margin-top:6px;display:block">免費額度對一般使用量通常綽綽有餘。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

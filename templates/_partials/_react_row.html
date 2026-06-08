@@ -1,0 +1,37 @@
+{% load static %}
+
+{# 暖意計數 #}
+<div class="row" style="gap:6px;margin-bottom:12px">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--heart)" style="flex:0 0 auto">
+    <path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 1.9 5 5.3 5c2 0 3.4 1.2 4.2 2.3l.5.7.5-.7C11.3 6.2 12.7 5 14.7 5c3.4 0 4.9 3.6 3.3 6.7C19.5 16.1 12 21 12 21z"/>
+  </svg>
+  <span class="muted" style="font-size:13px">收到 <b>{{ total }}</b> 份暖意</span>
+</div>
+
+{% if request.user.is_authenticated %}
+  {% if board_react == "tray" %}
+  <div x-data="{open: false}">
+    <button class="btn btn-ghost btn-sm" @click="open = true" x-show="!open">＋ 給一個暖暖的回應</button>
+    <div x-show="open" x-cloak class="enter">
+      {% include "_partials/_sticker_buttons.html" %}
+    </div>
+  </div>
+
+  {% elif board_react == "words" %}
+  <div class="row wrap" style="gap:7px;margin-top:10px" x-data="{sent: null}">
+    {% for w in warm_words %}
+    <button type="button"
+            class="chip"
+            @click="sent = '{{ w|escapejs }}'"
+            :style="sent === '{{ w|escapejs }}' ? 'background:var(--lilac-tint);color:var(--lilac-deep);border-color:var(--lilac)' : ''"
+            style="cursor:pointer">
+      <span x-show="sent !== '{{ w|escapejs }}'">💬 {{ w }}</span>
+      <span x-show="sent === '{{ w|escapejs }}'" x-cloak>已送出 ✓</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  {% include "_partials/_sticker_buttons.html" %}
+  {% endif %}
+{% endif %}

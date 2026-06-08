@@ -1,0 +1,58 @@
+<header class="topbar">
+  <a class="brand" href="{% url 'home' %}" style="text-decoration:none;cursor:pointer">
+    <div class="brand-mark"><span>🧸</span></div>
+    <div>
+      <div class="brand-name">涵心</div>
+      <div class="brand-sub">陪你慢慢好起來</div>
+    </div>
+  </a>
+
+  <div class="row" style="gap:8px;align-items:center">
+    {% if user.is_authenticated %}
+    <a class="btn btn-sm" href="{% url 'chat' %}" style="padding:8px 14px">🧸 涵涵</a>
+
+    {# 帳號選單（個人設定 + 登出） #}
+    <div x-data="{open:false}" @click.outside="open=false" style="position:relative">
+      <button @click="open=!open" type="button" class="avatar-btn"
+              :class="open ? 'avatar-btn--open' : ''">
+        {% if user.profile.nickname %}{{ user.profile.nickname|first|upper }}{% else %}{{ user.email|first|upper }}{% endif %}
+      </button>
+
+      <div x-show="open" x-cloak x-transition
+           style="position:absolute;right:0;top:44px;z-index:100;
+                  background:var(--surface);border:2px solid var(--line);
+                  border-radius:16px;box-shadow:var(--shadow-pop);
+                  padding:6px;min-width:150px">
+        <a href="{% url 'settings_profile' %}"
+           style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+                  border-radius:10px;font-size:14px;font-weight:600;color:var(--ink);
+                  text-decoration:none;transition:background .14s"
+           @mouseenter="$el.style.background='var(--surface-sink)'"
+           @mouseleave="$el.style.background='transparent'">
+          ⚙️ 個人設定
+        </a>
+        <a href="{% url 'settings_ai' %}"
+           style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+                  border-radius:10px;font-size:14px;font-weight:600;color:var(--ink);
+                  text-decoration:none;transition:background .14s"
+           @mouseenter="$el.style.background='var(--surface-sink)'"
+           @mouseleave="$el.style.background='transparent'">
+          🔑 AI 金鑰
+        </a>
+        <div style="height:1px;background:var(--line);margin:4px 8px"></div>
+        <a href="{% url 'account_logout' %}"
+           style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+                  border-radius:10px;font-size:14px;font-weight:600;color:var(--peach-deep);
+                  text-decoration:none;transition:background .14s"
+           @mouseenter="$el.style.background='var(--peach-tint)'"
+           @mouseleave="$el.style.background='transparent'">
+          👋 登出
+        </a>
+      </div>
+    </div>
+
+    {% else %}
+    <a class="btn btn-sm" href="{% url 'account_login' %}">登入</a>
+    {% endif %}
+  </div>
+</header>

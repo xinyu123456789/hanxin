@@ -1,0 +1,10 @@
+{% load static %}
+{# 大家的天氣 feed — 直接回傳卡片，不包 grid（#board-feed 本身已是 grid grid-2）#}
+{% for pd in posts_data %}
+{% include "_partials/_board_post.html" %}
+{% empty %}
+<div class="card center" style="grid-column:1/-1;padding:48px">
+  <div style="font-size:48px">🌦️</div>
+  <p class="muted">還沒有人分享心情，你來第一個！</p>
+</div>
+{% endfor %}

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}誇誇成長 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen">
+
+  <div class="page-head">
+    <span class="eyebrow" style="color:var(--sage-deep);background:var(--sage-tint)">🌱 自我成長</span>
+    <h1 class="page-title">誇誇筆記 &amp; 感謝罐</h1>
+    <p class="page-sub">每天寫一句鼓勵自己・一份喜悅・一個感恩，慢慢累積成心底的能量。</p>
+  </div>
+
+  {% include "_partials/_grow_viz.html" %}
+
+  {# ── 寫誇誇 ── #}
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="section-title" style="margin:0 0 6px"><span class="dot"></span>今天想誇誇自己什麼？</h2>
+    <p class="muted" style="font-size:13.5px;margin:0 0 14px">
+      提示：「{{ kudos_prompts|random }}」
+    </p>
+    <form hx-post="{% url 'kudos_add' %}"
+          hx-target="#kudos-list"
+          hx-swap="afterbegin"
+          hx-disabled-elt="find button[type='submit']"
+          hx-indicator="#kudos-submit-loading"
+          hx-on:htmx:after-request="this.reset()">
+      {% csrf_token %}
+      <textarea name="text" class="form-input" rows="3"
+                placeholder="今天我有…"></textarea>
+      <div class="row" style="margin-top:12px;justify-content:flex-end;gap:10px;align-items:center">
+        <span id="kudos-submit-loading" class="htmx-indicator muted" style="font-size:13px">
+          記錄中…
+        </span>
+        <button class="btn" type="submit">在花園記本 💛</button>
+      </div>
+    </form>
+  </div>
+
+  {# ── 本週任務進度（唯讀歷史，每天獨立記錄） ── #}
+  <div class="card" style="margin-bottom:16px">
+    <div class="row between" style="margin-bottom:14px">
+      <h2 class="section-title" style="margin:0"><span class="dot"></span>本週任務進度</h2>
+      <span class="faint" style="font-size:12px">{{ week_start|date:"m/d" }} 起</span>
+    </div>
+    {% if week_days %}
+    <div class="stack" style="gap:8px">
+      {% for day in week_days %}
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:12px;
+           {% if day.is_today %}background:var(--sage-tint);border:1.5px solid var(--sage){% else %}background:var(--surface-2){% endif %}">
+        <div style="flex:0 0 auto;text-align:center;min-width:36px">
+          <div style="font-size:11px;color:var(--ink-faint)">{{ day.date|date:"D"|slice:":一二三四五六日" }}</div>
+          <div style="font-size:14px;font-weight:700">{{ day.date|date:"d" }}</div>
+          {% if day.is_today %}<div style="font-size:10px;color:var(--sage-deep);font-weight:700">今天</div>{% endif %}
+        </div>
+        <div style="flex:1;min-width:0">
+          {% if day.tasks_done %}
+          <div class="row wrap" style="gap:5px">
+            {% for task in day.tasks_done %}
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;
+                         font-size:12px;background:var(--sage-tint);color:var(--sage-deep)">
+              {{ task.icon }} {{ task.label }}
+            </span>
+            {% endfor %}
+          </div>
+          {% else %}
+          <span class="faint" style="font-size:13px">— 這天沒有任務紀錄</span>
+          {% endif %}
+        </div>
+        <div style="flex:0 0 auto;font-size:13px;font-weight:700;color:var(--sage-deep)">
+          {{ day.tasks_done|length }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="center muted" style="padding:16px 0">本週還沒有任務紀錄</p>
+    {% endif %}
+  </div>
+
+  {# ── 本週誇誇筆記 ── #}
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="section-title" style="margin:0 0 12px"><span class="dot"></span>本週誇誇筆記</h2>
+    <div id="kudos-list" style="max-height:420px;overflow-y:auto">
+      {% for note in kudos %}
+      <div id="kudos-note-{{ note.id }}"
+           class="row between"
+           style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px;align-items:flex-start">
+        <span style="width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:grid;place-items:center;
+          background:var(--sage-tint);font-size:14px">✦</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;line-height:1.7">{{ note.praise_content }}</div>
+          <div class="faint" style="font-size:12px;margin-top:3px">{{ note.created_at|date:"m/d H:i" }}</div>
+        </div>
+        {# 刪除按鈕（確認後軟刪除） #}
+        <div x-data="{c:false}" style="flex:0 0 auto">
+          <button x-show="!c" @click="c=true" type="button" title="刪除"
+                  style="width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+                         font-size:11px;color:var(--ink-faint);cursor:pointer;transition:background .15s"
+                  @mouseenter="$el.style.background='var(--surface-sink)'"
+                  @mouseleave="$el.style.background='transparent'">✕</button>
+          <div x-show="c" x-cloak class="row" style="gap:4px">
+            <button @click="c=false" type="button"
+                    class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px">取消</button>
+            <button hx-post="{% url 'kudos_delete' note.id %}"
+                    hx-target="#kudos-note-{{ note.id }}"
+                    hx-swap="outerHTML swap:300ms"
+                    type="button"
+                    class="btn btn-sm"
+                    style="font-size:10px;padding:2px 6px;background:var(--peach-deep);box-shadow:none">
+              刪除
+            </button>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p class="center muted" style="padding:24px 0">本週還沒有誇誇，現在就寫第一則 💛</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# 今日心情打卡 + 月曆共用同一個 Alpine scope，選了心情月曆今天那格即時更新 #}
+  <div x-data="{
+    current: '{{ today_mood|escapejs }}',
+    emojis: {awful:'😭', sad:'😢', neutral:'😐', good:'🙂', great:'😄'},
+    labels: {awful:'😭 很難過', sad:'😢 有點低落', neutral:'😐 普通', good:'🙂 還不錯', great:'😄 很開心'}
+  }">
+
+  {# ── 今日心情打卡 ── #}
+  <div class="card" style="margin-bottom:16px">
+    <div class="row between" style="margin-bottom:14px;align-items:center">
+      <h2 class="section-title" style="margin:0">
+        <span class="dot" style="background:var(--sky-deep)"></span>今日心情
+      </h2>
+      <span x-show="current" x-cloak
+            x-text="labels[current]"
+            style="font-size:14px;color:var(--ink-soft)"></span>
+      <span x-show="!current" class="muted" style="font-size:13px">還沒有記錄</span>
+    </div>
+    <div class="row" style="gap:10px;justify-content:center">
+      {% for mood_val, mood_emoji in mood_choices %}
+      <button type="button"
+              hx-post="{% url 'mood_checkin' %}"
+              hx-vals='{"mood": "{{ mood_val }}"}'
+              hx-swap="none"
+              @click="current = '{{ mood_val }}'"
+              :class="current === '{{ mood_val }}' ? 'mood-btn--active' : 'mood-btn--idle'"
+              style="width:60px;height:60px;border-radius:16px;font-size:34px;
+                     cursor:pointer;border:2px solid;transition:all .15s;
+                     display:grid;place-items:center">
+        {{ mood_emoji }}
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── 本月心情日曆 ── #}
+  <div class="card" style="margin-bottom:16px">
+    <div class="row between" style="margin-bottom:14px;align-items:center">
+      <h2 class="section-title" style="margin:0">
+        <span class="dot" style="background:var(--butter-deep)"></span>本月心情記錄
+      </h2>
+      <span class="faint" style="font-size:13px">{{ mood_month_label }}</span>
+    </div>
+    <div style="max-width:420px;margin:0 auto">
+      {# 週標題 #}
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;text-align:center">
+        {% for d in "一二三四五六日" %}
+        <div style="font-size:11px;color:var(--ink-faint);font-weight:700;padding:3px 0">{{ d }}</div>
+        {% endfor %}
+      </div>
+      {# 日期格子 #}
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+        {% for week in mood_calendar_weeks %}
+          {% for cell in week %}
+          {% if cell.day %}
+          <div style="height:52px;border-radius:10px;display:flex;flex-direction:column;
+                      align-items:center;justify-content:center;gap:1px;
+                      {% if cell.is_today %}border:2px solid var(--sky);background:var(--sky-tint);
+                      {% elif cell.emoji %}background:var(--butter-tint);border:2px solid transparent;
+                      {% else %}background:var(--surface-2);border:2px solid transparent;{% endif %}">
+            {% if cell.is_today %}
+            {# 今天的 emoji 用 Alpine 即時顯示 #}
+            <span x-show="current" x-text="emojis[current]" x-cloak
+                  style="font-size:22px;line-height:1"></span>
+            {% elif cell.emoji %}
+            <span style="font-size:22px;line-height:1">{{ cell.emoji }}</span>
+            {% endif %}
+            <span style="font-size:11px;{% if cell.is_today %}color:var(--sky-deep);font-weight:700;{% else %}color:var(--ink-faint);{% endif %}">
+              {{ cell.day }}
+            </span>
+          </div>
+          {% else %}
+          <div></div>
+          {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  </div>{# end 心情 Alpine wrapper #}
+
+  {# ── 本週回顧（Gemini 生成）── #}
+  <div class="card" style="margin-bottom:16px">
+    <div style="margin-bottom:16px">
+      <h2 class="section-title" style="margin:0">
+        <span class="dot" style="background:var(--lilac-deep)"></span>本週回顧
+      </h2>
+    </div>
+    <div id="weekly-review-content">
+      {% include "_partials/_weekly_review.html" %}
+    </div>
+  </div>
+
+  {# ── 私人暖心小卡 ── #}
+  <div class="card" x-data="{
+    cards: {{ future_cards|safe }},
+    picked: '',
+    draw() {
+      if (this.cards.length <= 1) { this.picked = this.cards[0] || ''; return; }
+      let next;
+      do { next = this.cards[Math.floor(Math.random() * this.cards.length)]; }
+      while (next === this.picked);
+      this.picked = next;
+    }
+  }"
+       style="margin-bottom:60px;background:linear-gradient(135deg,var(--peach-tint),var(--lilac-tint))">
+    <h2 class="section-title" style="margin:0 0 10px"><span class="dot" style="background:var(--lilac)"></span>私人暖心小卡</h2>
+    <p class="muted" style="font-size:13.5px;margin:0 0 16px">抽一張正能量小卡，把它收進心裡 ✨</p>
+    <div x-show="picked" x-cloak x-transition
+         style="margin-bottom:16px;font-size:20px;line-height:1.7;font-style:italic;font-weight:700">
+      「<span x-text="picked"></span>」
+    </div>
+    <button class="btn btn-ghost btn-sm" @click="draw()">
+      抽一張暖心小卡 🃏
+    </button>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+<div class="card" x-data="{open:true}"
+     style="background:linear-gradient(135deg,var(--peach-tint),var(--lilac-tint));
+            border-color:var(--lilac);margin-bottom:14px">
+  <div class="row between">
+    <b>🫂 我們很在乎你</b>
+    <button class="chip btn-sm" @click="open=!open" x-text="open ? '收起' : '展開'">收起</button>
+  </div>
+  <div x-show="open" x-transition style="margin-top:10px">
+    <p class="muted mb0" style="font-size:14px;line-height:1.7">
+      如果現在很難熬，你不需要一個人撐。這些專線 24 小時都在：
+    </p>
+    <div class="row wrap" style="margin-top:10px;gap:8px">
+      <a class="btn btn-sm" href="tel:1925">📞 安心專線 1925</a>
+      <a class="btn btn-sm" href="tel:1995" style="background:var(--sage-tint);color:var(--sage-deep);border-color:var(--sage)">📞 生命線 1995</a>
+      <a class="btn btn-sm" href="tel:1980" style="background:var(--sky-tint);color:var(--sky-deep);border-color:var(--sky)">📞 張老師 1980</a>
+    </div>
+    <p class="faint" style="font-size:12px;margin-top:10px;margin-bottom:0">
+      如有立即危險，請撥 <b>119 / 110</b>。你願意說出來，這本身就是勇敢的事。
+    </p>
+  </div>
+</div>

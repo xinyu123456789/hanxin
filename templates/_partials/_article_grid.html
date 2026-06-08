@@ -1,0 +1,27 @@
+{% if articles %}
+<div class="grid grid-3" style="gap:14px">
+  {% for article in articles %}
+  <a href="{% url 'article_detail' article.pk %}" class="card-flat soft"
+     style="padding:16px;display:flex;flex-direction:column;gap:8px;text-decoration:none;transition:transform .14s"
+     onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+    <div class="row between">
+      <span class="tag
+        {% if article.category == '情緒覺察' or article.category == '人際關係' or article.category == '逐字稿' %}b
+        {% elif article.category == '焦慮' or article.category == 'AI 小說' %}v
+        {% elif article.category == '睡眠' %}y{% endif %}">
+        {% if article.category == 'AI 小說' %}✍️ {{ article.category }}
+        {% elif article.category == '逐字稿' %}🎙️ {{ article.category }}
+        {% else %}{{ article.category }}{% endif %}
+      </span>
+      <span class="faint" style="font-size:12px">📖 {{ article.read_minutes }} 分鐘</span>
+    </div>
+    <span style="font-weight:700;font-size:15px;line-height:1.4;color:var(--ink)">{{ article.title }}</span>
+    <span class="muted" style="font-size:13px;line-height:1.5;margin-top:auto">{{ article.excerpt|truncatechars:60 }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card center" style="padding:36px">
+  <p class="muted">這個分類目前還沒有其他文章。</p>
+</div>
+{% endif %}

@@ -1,0 +1,14 @@
+<nav class="settings-nav">
+  <a class="settings-nav-item{% if request.resolver_match.url_name == 'settings_ai' %} active{% endif %}"
+     href="{% url 'settings_ai' %}">
+    <span>🔑</span>AI 金鑰
+  </a>
+  <a class="settings-nav-item{% if request.resolver_match.url_name == 'settings_profile' %} active{% endif %}"
+     href="{% url 'settings_profile' %}">
+    <span>👤</span>個人檔案
+  </a>
+  <a class="settings-nav-item{% if request.resolver_match.url_name == 'settings_appearance' %} active{% endif %}"
+     href="{% url 'settings_appearance' %}">
+    <span>🎨</span>外觀偏好
+  </a>
+</nav>

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static hanxin_tags %}
+{% block title %}心情看板 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen">
+
+  {# ── 頁首 ── #}
+  <div class="page-head">
+    <span class="eyebrow" style="color:var(--sky-deep);background:var(--sky-tint)">🌦️ 匿名・無評論・零文字</span>
+    <h1 class="page-title">心情看板</h1>
+    <p class="page-sub">這裡沒有文字、沒有評論，只有天氣與貼圖。你可以放心放下，也能溫柔接住別人。</p>
+  </div>
+
+  {# ── 發布心情：天氣選擇器 ── #}
+  {% if user.is_authenticated %}
+  <div class="card knit" style="background:linear-gradient(120deg,#FBF0E0,#F2ECDB);border:2px solid var(--line)">
+    <div class="row between wrap" style="gap:8px">
+      <h2 class="section-title" style="margin:0"><span class="dot"></span>今天的天氣是⋯⋯</h2>
+      <span class="chip" style="background:var(--sage-tint);color:var(--sage-deep);border-color:var(--sage)">🌿 只用貼圖，不打字</span>
+    </div>
+    <p class="muted" style="margin:4px 0 16px;font-size:14px">選一個最貼近現在的天氣，匿名分享給也在努力的人。</p>
+
+    {# Alpine 管理選擇狀態 #}
+    <div x-data="{sel: null}" id="composer">
+      <div class="grid mood-grid" style="grid-template-columns:repeat(6,1fr);gap:10px">
+        {% for icon in preset_icons %}
+        <button @click="sel = sel === '{{ icon.emotion_type }}' ? null : '{{ icon.emotion_type }}'"
+                type="button"
+                style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;
+                border-radius:20px;transition:all .15s;cursor:pointer;outline:none;border:2px solid transparent"
+                :style="sel === '{{ icon.emotion_type }}'
+                  ? 'background:{{ icon.tint_var }};border-color:{{ icon.ring_var }}'
+                  : 'background:transparent;border-color:transparent'">
+          <div style="width:100%;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#fff;padding:3px"
+               :style="sel === '{{ icon.emotion_type }}' ? 'box-shadow:0 8px 16px -10px rgba(124,94,66,.6)' : ''">
+            <img src="{% static icon.image_path %}" alt="{{ icon.label }}"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:11px"/>
+          </div>
+          <span style="font-size:12.5px;font-weight:700"
+                :style="sel === '{{ icon.emotion_type }}' ? 'color:{{ icon.ring_var }}' : 'color:var(--ink-soft)'">
+            {{ icon.label }}
+          </span>
+        </button>
+        {% endfor %}
+      </div>
+
+      {# 已選天氣的描述文字 #}
+      {% for icon in preset_icons %}
+      <p x-show="sel === '{{ icon.emotion_type }}'" x-cloak
+         class="center muted" style="font-size:15px;margin:14px 0 6px">
+        {{ icon.desc }}
+      </p>
+      {% endfor %}
+
+      {# 發布按鈕（HTMX + Alpine 配合） #}
+      <form hx-post="{% url 'board_post' %}"
+            hx-target="#board-feed"
+            hx-swap="afterbegin"
+            hx-on:htmx:after-request="sel = null"
+            style="margin-top:14px"
+            x-bind:style="!sel ? 'opacity:.5;pointer-events:none' : ''">
+        {% csrf_token %}
+        {% for icon in preset_icons %}
+        <input type="radio" name="preset_icon_id" value="{{ icon.id }}"
+               x-bind:checked="sel === '{{ icon.emotion_type }}'"
+               style="display:none"/>
+        {% endfor %}
+        <button class="btn fill" type="submit" :disabled="!sel">
+          <span x-show="!sel">先選一個天氣</span>
+          <span x-show="sel" x-cloak>發布這片天氣 🌤️</span>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  {# 訪客：顯示 CTA 邀請登入 #}
+  <div class="card knit" style="background:linear-gradient(120deg,#FBF0E0,#F2ECDB);border:2px solid var(--line);
+       text-align:center;padding:28px 24px">
+    <div style="font-size:40px;margin-bottom:12px">☀️</div>
+    <p style="font-size:16px;font-weight:700;color:var(--ink);margin:0 0 6px">想分享今天的心情嗎？</p>
+    <p class="muted" style="font-size:14px;margin:0 0 18px">登入後就能用天氣貼圖匿名表達，大家互相接住。</p>
+    <a class="btn" href="{% url 'account_login' %}?next={% url 'board' %}">登入後發文</a>
+  </div>
+  {% endif %}
+
+  {# ── 大家的天氣 / 我的心情 切換（訪客只有單一選項，不顯示切換列）── #}
+  {% if user.is_authenticated %}
+  <div class="row between" style="margin-top:24px;margin-bottom:12px;flex-wrap:wrap;gap:8px" x-data="{tab:'all'}">
+    <h2 class="section-title" style="color:var(--sky-deep);margin:0">
+      <span class="dot" style="background:var(--sky-deep)"></span>
+      <span x-text="tab==='all' ? '大家的天氣' : '我的心情'">大家的天氣</span>
+    </h2>
+    <div class="row" style="gap:8px">
+      <button class="chip" :class="tab==='all' ? 'on' : ''"
+              @click="tab='all'"
+              hx-get="{% url 'board' %}"
+              hx-target="#board-feed"
+              hx-swap="innerHTML"
+              type="button">🌦️ 大家的</button>
+      <button class="chip" :class="tab==='mine' ? 'on' : ''"
+              @click="tab='mine'"
+              hx-get="{% url 'board_mine' %}"
+              hx-target="#board-feed"
+              hx-swap="innerHTML"
+              type="button">🙋 我的心情</button>
+    </div>
+  </div>
+  {% else %}
+  <h2 class="section-title" style="color:var(--sky-deep);margin:24px 0 12px">
+    <span class="dot" style="background:var(--sky-deep)"></span>大家的天氣
+  </h2>
+  {% endif %}
+  <div id="board-feed" class="grid grid-2" style="gap:16px">
+    {% for pd in posts_data %}
+    {% include "_partials/_board_post.html" with pd=pd warm_word=warm_word board_react=board_react %}
+    {% endfor %}
+    {# 空狀態：靠 CSS :only-child 控制，不需要 OOB，有貼文自動隱藏，最後一篇刪掉自動顯示 #}
+    <div id="board-empty-state" class="card center" style="grid-column:1/-1;padding:48px">
+      <div style="font-size:48px;margin-bottom:12px">🌦️</div>
+      <p class="muted">還沒有人分享心情，你來第一個！</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

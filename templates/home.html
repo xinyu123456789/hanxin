@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}首頁 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen">
+
+  {# ── Hero 問候卡 ── #}
+  <div class="card knit enter" style="overflow:hidden;padding:30px 28px;
+    background:linear-gradient(135deg,#FBEFDD 0%,#FCE6D7 55%,#F7E2EC 100%);
+    border:2px solid var(--line)">
+    {# 閃爍星星裝飾 #}
+    <span aria-hidden="true" style="position:absolute;top:12%;left:8%;font-size:12px;color:var(--butter-deep);opacity:.5;animation:twinkle 3s ease-in-out infinite">✦</span>
+    <span aria-hidden="true" style="position:absolute;top:28%;right:14%;font-size:18px;color:var(--butter-deep);opacity:.5;animation:twinkle 3.5s .6s ease-in-out infinite">✦</span>
+    <span aria-hidden="true" style="position:absolute;bottom:20%;left:20%;font-size:10px;color:var(--butter-deep);opacity:.5;animation:twinkle 2.8s 1.1s ease-in-out infinite">✦</span>
+
+    <div class="row between wrap" style="gap:22px;position:relative">
+      <div style="flex:1 1 300px;min-width:0">
+        <span class="eyebrow">❤️ 涵心・陪你慢慢來</span>
+        <h1 class="page-title" style="font-size:30px;margin-top:4px">
+          嗨{% if user.is_authenticated and user.profile.nickname %}，{{ user.profile.nickname }}{% endif %}，今天的你，<br/>還好嗎？
+        </h1>
+        <p class="page-sub">不用急著好起來。先讓自己被接住，<span class="mobonly"><br/></span>剩下的，我們一步一步來。</p>
+        <div class="row wrap" style="margin-top:18px;gap:10px">
+          <a class="btn" href="{% if user.is_authenticated %}{% url 'chat' %}{% else %}{% url 'account_login' %}?next={% url 'chat' %}{% endif %}">🧸 找涵涵聊聊</a>
+          <a class="btn btn-ghost" href="{% if user.is_authenticated %}{% url 'board' %}{% else %}{% url 'account_login' %}?next={% url 'board' %}{% endif %}">發一則心情</a>
+        </div>
+      </div>
+      <div style="flex:0 0 auto">
+        <div class="knit" style="width:130px;height:130px;border-radius:28px;background:#fff;padding:6px;
+          box-shadow:0 8px 18px -10px rgba(124,94,66,.55);animation:bob 4s ease-in-out infinite">
+          <img src="{% static 'img/assets/sticker-comfort.png' %}" alt="涵涵"
+               style="width:100%;height:100%;object-fit:cover;border-radius:22px;display:block"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── 今日任務 + 心情樹 ── #}
+  <div class="grid home-main-grid" style="grid-template-columns:1.3fr 1fr;margin-top:20px;gap:16px;align-items:stretch">
+
+    {# 今日任務（登入存 DB、訪客存 session，介面完全相同） #}
+    <div class="card enter" style="animation-delay:.05s">
+      <div class="row between">
+        <h2 class="section-title" style="margin:0"><span class="dot"></span>今日小任務</h2>
+        <span id="task-counter" class="tag">{{ done_count }}/{{ task_total }}</span>
+      </div>
+      <p class="muted" style="margin:4px 0 16px;font-size:14px">完成一件，心情樹就多結一顆果實 🍑</p>
+      <div class="stack" style="gap:9px">
+        {% for task, done in tasks %}
+        <div id="task-{{ task.id }}"
+             hx-post="{% url 'task_toggle' task.id %}"
+             hx-target="#task-{{ task.id }}"
+             hx-swap="outerHTML"
+             style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:16px;cursor:pointer;
+             background:{% if done %}var(--sage-tint){% else %}var(--surface-2){% endif %};
+             border:2px solid {% if done %}var(--sage){% else %}var(--line){% endif %};
+             transition:all .18s">
+          <div style="width:26px;height:26px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;
+               background:{% if done %}var(--sage-deep){% else %}#fff{% endif %};
+               border:2px solid {% if done %}var(--sage-deep){% else %}var(--line-strong){% endif %};
+               color:#fff;font-size:14px;font-weight:800;pointer-events:none">
+            {% if done %}✓{% endif %}
+          </div>
+          <span style="font-size:19px">{{ task.icon }}</span>
+          <span style="font-weight:600;{% if done %}text-decoration:line-through;color:var(--ink-soft){% endif %}">{{ task.label }}</span>
+        </div>
+        {% empty %}
+        <p class="muted" style="font-size:14px">管理員可在後台新增每日任務。</p>
+        {% endfor %}
+      </div>
+      {% if not user.is_authenticated %}
+      <p class="muted" style="margin:14px 0 0;font-size:12.5px;text-align:center">
+        💡 <a href="{% url 'account_login' %}" style="color:var(--accent)">登入</a>後進度才會被記錄下來
+      </p>
+      {% endif %}
+    </div>
+
+    {% include "_partials/_mini_tree.html" %}
+  </div>
+
+  {# ── 今日暖心語 ── #}
+  <div class="card knit enter" style="margin-top:20px;text-align:center;padding:26px;
+    background:linear-gradient(120deg,var(--lilac-tint),var(--sky-tint));border:2px solid var(--line)">
+    <div class="faint" style="font-size:13px;font-weight:700;letter-spacing:1px">今 日 暖 心 語</div>
+    <p style="font-size:21px;font-weight:700;margin:10px auto 0;max-width:90%;line-height:1.6">
+      「{{ warm_word }}」
+    </p>
+  </div>
+
+  {# ── 今日情境題 ── #}
+  <div class="card enter" style="margin-top:20px">
+    <div class="row between" style="margin-bottom:14px;align-items:center">
+      <h2 class="section-title" style="margin:0"><span class="dot" style="background:var(--lilac-deep)"></span>今日情境題</h2>
+      <span class="tag" style="background:var(--lilac-tint);color:var(--lilac-deep);border-color:var(--lilac);font-size:12px">💬 分享你的看法</span>
+    </div>
+    <div hx-get="{% url 'situation_daily' %}"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+      <p class="muted" style="font-size:14px;text-align:center;padding:16px 0">載入中⋯⋯</p>
+    </div>
+  </div>
+
+  {# ── 週回顧提醒（周日晚上 8 點後、本週尚未生成）── #}
+  {% if show_review_reminder %}
+  <div class="card knit enter" style="margin-top:20px;padding:22px 24px;
+       background:linear-gradient(120deg,var(--lilac-tint),var(--sky-tint));border:2px solid var(--line)">
+    <div class="row between wrap" style="gap:12px;align-items:center">
+      <div>
+        <div style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:4px">
+          ✨ 這週過得怎麼樣？
+        </div>
+        <p class="muted" style="margin:0;font-size:14px;line-height:1.6">
+          讓涵涵幫你整理這一週的點滴，生成專屬的週回顧。
+        </p>
+      </div>
+      <a class="btn" href="{% url 'grow' %}" style="flex-shrink:0">去生成週回顧</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── 快捷入口 ── #}
+  <h2 class="section-title"><span class="dot"></span>想去哪裡走走？</h2>
+  <div class="grid grid-auto">
+    <a href="{% url 'board' %}" class="card-flat soft" style="padding:18px;background:var(--sky-tint);display:flex;flex-direction:column;gap:6px;text-decoration:none;min-height:118px;transition:transform .14s"
+       onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+      <span style="font-size:30px">🌦️</span>
+      <span style="font-weight:700;font-size:17px">心情看板</span>
+      <span class="muted" style="font-size:13.5px">用天氣貼圖說說今天</span>
+    </a>
+    <a href="{% url 'grow' %}" class="card-flat soft" style="padding:18px;background:var(--sage-tint);display:flex;flex-direction:column;gap:6px;text-decoration:none;min-height:118px;transition:transform .14s"
+       onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+      <span style="font-size:30px">🌱</span>
+      <span style="font-weight:700;font-size:17px">誇誇筆記</span>
+      <span class="muted" style="font-size:13.5px">寫一句讚美自己的話</span>
+    </a>
+    <a href="{% url 'resources' %}" class="card-flat soft" style="padding:18px;background:var(--butter-tint);display:flex;flex-direction:column;gap:6px;text-decoration:none;min-height:118px;transition:transform .14s"
+       onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+      <span style="font-size:30px">📚</span>
+      <span style="font-weight:700;font-size:17px">心理資源</span>
+      <span class="muted" style="font-size:13.5px">文章・量表・影片陪你</span>
+    </a>
+    <a href="{% url 'clinics' %}" class="card-flat soft" style="padding:18px;background:var(--lilac-tint);display:flex;flex-direction:column;gap:6px;text-decoration:none;min-height:118px;transition:transform .14s"
+       onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+      <span style="font-size:30px">📍</span>
+      <span style="font-weight:700;font-size:17px">診所指南</span>
+      <span class="muted" style="font-size:13.5px">找到離你近的支持</span>
+    </a>
+  </div>
+
+  <p class="center faint" style="margin-top:34px;font-size:13px;line-height:1.7;margin-bottom:20px">
+    涵心是陪伴與自助的空間，無法取代專業醫療。<br/>
+    若正處於危機，請撥打 <b style="color:var(--peach-deep)">安心專線 1925</b> 或 <b style="color:var(--sage-deep)">生命線 1995</b>。
+  </p>
+
+</div>
+{% endblock %}

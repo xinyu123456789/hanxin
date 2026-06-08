@@ -1,0 +1,7 @@
+{% if all_sessions %}
+  {% for s in all_sessions %}
+    {% include "_partials/_session_item.html" %}
+  {% endfor %}
+{% else %}
+  <div class="center faint" style="padding:32px 16px;font-size:13px">還沒有對話紀錄</div>
+{% endif %}

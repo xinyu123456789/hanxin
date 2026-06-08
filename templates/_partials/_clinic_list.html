@@ -1,0 +1,44 @@
+{# OOB：僅在 HTMX 篩選請求時才輸出，初始頁面載入不輸出（避免重複顯示） #}
+{% if request.META.HTTP_HX_REQUEST %}
+<span id="clinic-count" class="tag v" hx-swap-oob="outerHTML">{{ clinics|length }} 筆</span>
+{% endif %}
+
+{% load hanxin_tags %}
+{% if clinics %}
+<div class="grid grid-2" style="gap:16px">
+  {% for clinic in clinics %}
+  <div class="card-flat soft" style="padding:18px;display:flex;flex-direction:column;gap:9px;
+       animation:floatUp .35s ease {{ forloop.counter0|anim_delay }}s both">
+    <div class="row between" style="align-items:flex-start">
+      <h3 style="margin:0;font-size:17.5px;font-weight:700;line-height:1.4">{{ clinic.name }}</h3>
+      <span class="tag {% if clinic.clinic_type == '諮商所' %}{% else %}b{% endif %}" style="flex:0 0 auto">
+        {{ clinic.clinic_type }}
+      </span>
+    </div>
+    <div class="row muted" style="gap:6px;font-size:14px">
+      📍 {{ clinic.county }}{{ clinic.district }}
+      {% if clinic.address %}・{{ clinic.address }}{% endif %}
+    </div>
+    {% if clinic.phone %}
+    <div style="font-size:13.5px;color:var(--ink-soft)">📞 {{ clinic.phone }}</div>
+    {% endif %}
+    <div class="row" style="gap:8px;margin-top:4px;flex-wrap:wrap">
+      <a href="{{ clinic.maps_url }}" target="_blank" rel="noopener noreferrer"
+         class="btn btn-ghost btn-sm">
+        🗺️ 在 Google 地圖開啟
+      </a>
+      {% if clinic.website_url %}
+      <a href="{{ clinic.website_url }}" target="_blank" rel="noopener noreferrer"
+         class="btn btn-ghost btn-sm">
+        🌐 官網
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card center muted" style="padding:48px">
+  這個篩選條件下還沒有資料 🌿 試試其他縣市
+</div>
+{% endif %}

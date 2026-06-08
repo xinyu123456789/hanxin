@@ -1,0 +1,21 @@
+<div id="task-{{ task.id }}"
+     hx-post="{% url 'task_toggle' task.id %}"
+     hx-target="#task-{{ task.id }}"
+     hx-swap="outerHTML"
+     style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:16px;cursor:pointer;
+     background:{% if done %}var(--sage-tint){% else %}var(--surface-2){% endif %};
+     border:2px solid {% if done %}var(--sage){% else %}var(--line){% endif %};
+     transition:all .18s">
+  <div style="width:26px;height:26px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;
+       background:{% if done %}var(--sage-deep){% else %}#fff{% endif %};
+       border:2px solid {% if done %}var(--sage-deep){% else %}var(--line-strong){% endif %};
+       color:#fff;font-size:14px;font-weight:800;pointer-events:none">
+    {% if done %}✓{% endif %}
+  </div>
+  <span style="font-size:19px">{{ task.icon }}</span>
+  <span style="font-weight:600;{% if done %}text-decoration:line-through;color:var(--ink-soft){% endif %}">
+    {{ task.label }}
+  </span>
+</div>
+{% include "_partials/_mini_tree.html" with hx_oob=True %}
+<span id="task-counter" class="tag" hx-swap-oob="outerHTML">{{ done_count }}/{{ task_total }}</span>

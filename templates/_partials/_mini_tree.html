@@ -1,0 +1,83 @@
+{% load static hanxin_tags %}
+<a id="mini-tree-card" class="card" href="{% url 'grow' %}"
+   {% if hx_oob %}hx-swap-oob="outerHTML"{% endif %}
+   style="display:flex;flex-direction:column;text-decoration:none;cursor:pointer">
+
+  <h2 class="section-title" style="margin:0 0 8px">
+    <span class="dot" style="background:var(--sage-deep)"></span>
+    {% if tree_style == "garden" %}我的小花園{% elif tree_style == "jar" %}我的感謝罐{% else %}我的心情樹{% endif %}
+  </h2>
+
+  <div style="flex:1;display:grid;place-items:center">
+
+    {% if tree_style == "garden" %}
+    <svg viewBox="0 0 300 250" style="width:100%;max-width:280px;display:block;margin:0 auto">
+      <path d="M0 200 Q150 178 300 200 L300 250 L0 250 Z" fill="#E1EDDA"/>
+      <path d="M0 214 Q150 196 300 214 L300 250 L0 250 Z" fill="#CFE2C5"/>
+      {% if not viz_flowers %}
+      <text x="150" y="150" text-anchor="middle" font-size="14" fill="#6B9E60" font-weight="bold">寫下第一句誇誇，種下第一朵花 🌱</text>
+      {% endif %}
+      {% for flower in viz_flowers %}
+      <g style="{% if not hx_oob %}animation:growIn .5s ease {{ forloop.counter0|anim_delay }}s both;{% elif forloop.last %}animation:growIn .5s ease both;{% endif %}transform-origin:{{ flower.x }}px {{ flower.base_y }}px">
+        <rect x="{{ flower.rx }}" y="{{ flower.y }}" width="3" height="34" rx="1.5" fill="#86AC7C"/>
+        <ellipse cx="{{ flower.lx }}" cy="{{ flower.ly }}" rx="7" ry="3.5" fill="#86AC7C" transform="rotate(-30 {{ flower.lx }} {{ flower.ly }})"/>
+        {% for p in flower.petals %}
+        <ellipse cx="{{ p.px }}" cy="{{ p.py }}" rx="7" ry="10" fill="{{ p.c }}" transform="rotate({{ p.rot }} {{ p.px }} {{ p.py }})"/>
+        {% endfor %}
+        <circle cx="{{ flower.x }}" cy="{{ flower.y }}" r="6" fill="#FBF3E2"/>
+        <circle cx="{{ flower.x }}" cy="{{ flower.y }}" r="3" fill="#E6B85B"/>
+      </g>
+      {% endfor %}
+    </svg>
+
+    {% elif tree_style == "jar" %}
+    <svg viewBox="0 0 300 270" style="width:100%;max-width:260px;display:block;margin:0 auto">
+      <ellipse cx="150" cy="256" rx="64" ry="9" fill="rgba(94,74,60,.10)"/>
+      <rect x="116" y="58" width="68" height="18" rx="6" fill="#E6CFA0"/>
+      <path d="M100 78 Q100 70 112 70 L188 70 Q200 70 200 78 L196 232 Q196 246 182 246 L118 246 Q104 246 104 232 Z"
+            fill="rgba(170,200,224,.22)" stroke="#C9B68C" stroke-width="3"/>
+      <clipPath id="jarclip-home">
+        <path d="M104 80 L196 80 L193 232 Q193 243 182 243 L118 243 Q107 243 107 232 Z"/>
+      </clipPath>
+      <g clip-path="url(#jarclip-home)">
+        <rect x="104" y="{{ viz_jar.fill_y }}" width="92" height="{{ viz_jar.fill_h }}" fill="rgba(243,208,138,.30)"/>
+        {% for star in viz_jar.stars %}
+        <text x="{{ star.x }}" y="{{ star.y }}" font-size="15" fill="{{ star.c }}"
+              style="{% if not hx_oob %}animation:growIn .4s ease {{ forloop.counter0|anim_delay }}s both;{% elif forloop.last %}animation:growIn .4s ease both;{% endif %}">{{ star.char }}</text>
+        {% empty %}
+        <text x="150" y="180" text-anchor="middle" font-size="14" fill="#8A6F2E" font-weight="bold">寫下第一句誇誇 🌟</text>
+        {% endfor %}
+      </g>
+      <ellipse cx="150" cy="70" rx="44" ry="7" fill="#EFD9AC"/>
+    </svg>
+
+    {% else %}
+    <svg viewBox="0 0 300 290" style="width:100%;max-width:280px;display:block;margin:0 auto">
+      <ellipse cx="150" cy="272" rx="92" ry="13" fill="rgba(94,74,60,.10)"/>
+      <rect x="139" y="162" width="22" height="104" rx="11" fill="#B98E66"/>
+      <path d="M150 212 Q116 192 100 156" stroke="#B98E66" stroke-width="13" fill="none" stroke-linecap="round"/>
+      <path d="M150 196 Q186 178 202 150" stroke="#B98E66" stroke-width="13" fill="none" stroke-linecap="round"/>
+      <circle cx="98" cy="128" r="58" fill="#A9C7A0"/>
+      <circle cx="202" cy="128" r="58" fill="#A9C7A0"/>
+      <circle cx="150" cy="86" r="62" fill="#B6D3AC"/>
+      <circle cx="150" cy="132" r="66" fill="#BBD3B0"/>
+      <circle cx="118" cy="108" r="44" fill="#C4DDBA"/>
+      <circle cx="184" cy="110" r="40" fill="#C4DDBA"/>
+      {% for s in viz_spots %}
+      <g style="{% if hx_oob %}{% if forloop.counter0 >= prev_tree_points %}animation:growIn .45s ease both;{% endif %}{% else %}animation:growIn .45s ease {{ forloop.counter0|anim_delay }}s both;{% endif %}transform-origin:{{ s.x }}px {{ s.y }}px">
+        <rect x="{{ s.rx }}" y="{{ s.ry }}" width="1.8" height="6" fill="#9C7A56"/>
+        <circle cx="{{ s.x }}" cy="{{ s.y }}" r="9" fill="{{ s.c }}"/>
+        <circle cx="{{ s.hx }}" cy="{{ s.hy }}" r="2.8" fill="rgba(255,255,255,.6)"/>
+      </g>
+      {% empty %}
+      <text x="150" y="124" text-anchor="middle" font-size="14" fill="#5C8A52" font-weight="bold">寫下第一句誇誇，結出第一顆果實 🍑</text>
+      {% endfor %}
+    </svg>
+    {% endif %}
+
+  </div>
+
+  <p class="center muted" style="margin:6px 0 0;font-size:14px">
+    已累積 <b style="color:var(--sage-deep)">{{ tree_points }}</b> 份善待自己
+  </p>
+</a>

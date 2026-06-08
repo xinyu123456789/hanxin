@@ -1,0 +1,30 @@
+<div id="kudos-note-{{ note.id }}"
+     class="row between"
+     style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px;align-items:flex-start;animation:floatUp .4s ease both">
+  <span style="width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:grid;place-items:center;
+    background:var(--sage-tint);font-size:14px">✦</span>
+  <div style="flex:1;min-width:0">
+    <div style="font-size:15px;line-height:1.7">{{ note.praise_content }}</div>
+    <div class="faint" style="font-size:12px;margin-top:3px">{{ note.created_at|date:"m/d H:i" }}</div>
+  </div>
+  <div x-data="{c:false}" style="flex:0 0 auto">
+    <button x-show="!c" @click="c=true" type="button" title="刪除"
+            style="width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+                   font-size:11px;color:var(--ink-faint);cursor:pointer;transition:background .15s"
+            @mouseenter="$el.style.background='var(--surface-sink)'"
+            @mouseleave="$el.style.background='transparent'">✕</button>
+    <div x-show="c" x-cloak class="row" style="gap:4px">
+      <button @click="c=false" type="button"
+              class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px">取消</button>
+      <button hx-post="{% url 'kudos_delete' note.id %}"
+              hx-target="#kudos-note-{{ note.id }}"
+              hx-swap="outerHTML swap:300ms"
+              type="button"
+              class="btn btn-sm"
+              style="font-size:10px;padding:2px 6px;background:var(--peach-deep);box-shadow:none">
+        刪除
+      </button>
+    </div>
+  </div>
+</div>
+{% include "_partials/_grow_viz.html" with hx_oob=True %}

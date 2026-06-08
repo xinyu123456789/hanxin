@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}診所指南 · 涵心{% endblock %}
+
+{% block screen %}
+{{ districts_data|json_script:"clinic-districts-data" }}
+<div class="screen"
+  x-data="{
+    county:   '{{ selected_county|escapejs }}',
+    ctype:    '{{ selected_type|escapejs }}',
+    district: '{{ selected_district|escapejs }}',
+    allDistricts: JSON.parse(document.getElementById('clinic-districts-data').textContent),
+    get currentDistricts() { return this.allDistricts[this.county] || []; },
+    setCounty(c)   { this.county = c; this.district = '全部'; this.query(); },
+    setType(t)     { this.ctype = t; this.query(); },
+    setDistrict(d) { this.district = d; this.query(); },
+    query() {
+      htmx.ajax('GET',
+        '{% url 'clinics' %}?county='    + encodeURIComponent(this.county)
+          + '&type='     + encodeURIComponent(this.ctype)
+          + '&district=' + encodeURIComponent(this.district),
+        { target: '#clinic-list', swap: 'innerHTML' }
+      );
+    }
+  }">
+
+  <div class="page-head">
+    <span class="eyebrow" style="color:var(--lilac-deep);background:var(--lilac-tint)">📍 地區診所指南</span>
+    <h1 class="page-title">找到離你近的支持</h1>
+    <p class="page-sub">選擇你所在的縣市，看看附近的心理諮商所與身心科診所，一鍵導航前往。</p>
+  </div>
+
+  {# ── 篩選 Chips ── #}
+  <div class="card" style="margin-bottom:20px">
+    <div class="stack" style="gap:14px">
+
+      <div>
+        <div class="muted" style="font-size:13.5px;font-weight:700;margin-bottom:8px">縣市</div>
+        <div class="row wrap" style="gap:8px">
+          <button class="chip" :class="county==='全部' ? 'on' : ''"
+                  @click="setCounty('全部')" type="button">全部</button>
+          {% for c in counties %}
+          <button class="chip" :class="county==='{{ c|escapejs }}' ? 'on' : ''"
+                  @click="setCounty('{{ c|escapejs }}')" type="button">{{ c }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# 行政區（只在選了特定縣市時顯示）#}
+      <div x-show="county !== '全部'" x-cloak x-transition>
+        <div class="muted" style="font-size:13.5px;font-weight:700;margin-bottom:8px">鄉 / 鎮 / 市 / 區</div>
+        <div class="row wrap" style="gap:8px">
+          <button class="chip" :class="district==='全部' ? 'on' : ''"
+                  @click="setDistrict('全部')" type="button">全部</button>
+          <template x-for="d in currentDistricts" :key="d">
+            <button class="chip" :class="district===d ? 'on' : ''"
+                    @click="setDistrict(d)" type="button" x-text="d"></button>
+          </template>
+        </div>
+      </div>
+
+      <div>
+        <div class="muted" style="font-size:13.5px;font-weight:700;margin-bottom:8px">類型</div>
+        <div class="row wrap" style="gap:8px">
+          <button class="chip" :class="ctype==='全部' ? 'on' : ''"
+                  @click="setType('全部')" type="button">全部</button>
+          <button class="chip" :class="ctype==='諮商所' ? 'on' : ''"
+                  @click="setType('諮商所')" type="button">諮商所</button>
+          <button class="chip" :class="ctype==='身心科' ? 'on' : ''"
+                  @click="setType('身心科')" type="button">身心科</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {# ── 清單標題 ── #}
+  <div class="row between" style="margin-bottom:12px">
+    <h2 class="section-title" style="margin:0;color:var(--lilac-deep)">
+      <span class="dot" style="background:var(--lilac-deep)"></span>
+      <span x-text="county==='全部' ? '全部地區' : county + (district==='全部' ? '' : ' ' + district)">
+        {% if selected_county == "全部" %}全部地區{% else %}{{ selected_county }}{% if selected_district != "全部" %} {{ selected_district }}{% endif %}{% endif %}
+      </span>的資源
+    </h2>
+    <span id="clinic-count" class="tag v">{{ clinics|length }} 筆</span>
+  </div>
+
+  {# ── 診所清單（HTMX 換入） ── #}
+  <div id="clinic-list" style="margin-bottom:40px">
+    {% include "_partials/_clinic_list.html" %}
+  </div>
+
+  <p class="center faint" style="font-size:13px;line-height:1.7;margin-bottom:60px">
+    以上為示意資料，實際就診請以各機構公告為準。<br/>
+    緊急狀況請撥 <b style="color:var(--peach-deep)">安心專線 1925</b>、<b style="color:var(--sage-deep)">生命線 1995</b> 或 <b>110 / 119</b>。
+  </p>
+
+</div>
+{% endblock %}

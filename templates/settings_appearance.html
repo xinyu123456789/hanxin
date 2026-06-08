@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}外觀偏好 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen"
+  x-data="{
+    accent: '{{ form.instance.accent|default:'peach' }}',
+    board_react: '{{ form.instance.board_react|default:'tray' }}',
+    tree_style: '{{ form.instance.tree_style|default:'tree' }}',
+    accents: {
+      peach: {a:'#F0A985', d:'#E58E64', t:'#FBE3D4', name:'蜜桃'},
+      sage:  {a:'#A9C7A0', d:'#86AC7C', t:'#E1EDDA', name:'鼠尾草綠'},
+      sky:   {a:'#AAC8E0', d:'#7FA8CC', t:'#DEEAF4', name:'天空藍'},
+      lilac: {a:'#CDB8DE', d:'#AE93C6', t:'#EBE0F2', name:'薰衣草紫'},
+    },
+    pick(name) {
+      this.accent = name;
+      const c = this.accents[name];
+      const r = document.documentElement;
+      ['--accent','--peach'].forEach(k => r.style.setProperty(k, c.a));
+      ['--accent-deep','--peach-deep'].forEach(k => r.style.setProperty(k, c.d));
+      ['--accent-tint','--peach-tint'].forEach(k => r.style.setProperty(k, c.t));
+    }
+  }">
+
+  <div class="page-head">
+    <span class="eyebrow">⚙️ 個人設定</span>
+    <h1 class="page-title">個人設定</h1>
+  </div>
+
+  <div class="settings-layout">
+    {% include "_partials/_settings_nav.html" %}
+
+    <div>
+      <h2 style="font-size:20px;font-weight:700;margin:0 0 18px">外觀偏好</h2>
+      <p class="muted" style="font-size:14px;margin:-10px 0 18px">調整主題色、字級和互動方式，讓涵心更符合你。</p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {# ── 主題色 ── #}
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-title" style="margin:0 0 16px"><span class="dot"></span>主題色調</div>
+      <div class="row wrap" style="gap:14px">
+        <template x-for="(info, key) in accents" :key="key">
+          <label style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px">
+            <input type="radio" name="accent" :value="key" x-model="accent"
+                   @change="pick(key)" style="display:none"/>
+            <div style="width:48px;height:48px;border-radius:50%;transition:all .2s;cursor:pointer"
+                 :style="{
+                   background: info.a,
+                   border: accent === key ? '3px solid ' + info.d : '3px solid transparent',
+                   boxShadow: accent === key ? '0 0 0 3px ' + info.t + ', 0 6px 16px -8px ' + info.d : '0 4px 10px -4px ' + info.a
+                 }"
+                 @click="pick(key)">
+            </div>
+            <span style="font-size:13px;font-weight:600"
+                  :style="accent === key ? 'color:var(--accent-deep)' : 'color:var(--ink-soft)'"
+                  x-text="info.name"></span>
+          </label>
+        </template>
+      </div>
+    </div>
+
+    {# ── 字級 ── #}
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-title" style="margin:0 0 12px"><span class="dot"></span>字級</div>
+      <div class="row" style="gap:14px;align-items:center">
+        <span class="muted" style="font-size:13px;white-space:nowrap">小 A</span>
+        <input type="range" name="font_scale"
+               value="{{ form.instance.font_scale|default:100 }}"
+               min="90" max="115" step="5"
+               style="flex:1;accent-color:var(--accent);height:6px;cursor:pointer"/>
+        <span style="font-size:19px;font-weight:700">A</span>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:8px">90% ~ 115%，目前：{{ form.instance.font_scale|default:100 }}%</p>
+    </div>
+
+    {# ── 看板互動模式 ── #}
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-title" style="margin:0 0 12px"><span class="dot"></span>看板互動模式</div>
+      <div class="row wrap" style="gap:8px">
+        {% for value, label in form.fields.board_react.choices %}
+        <button type="button"
+                class="chip"
+                @click="board_react = '{{ value }}'"
+                :style="board_react === '{{ value }}' ? 'background:var(--accent-tint);color:var(--accent-deep);border-color:var(--accent)' : ''">
+          {{ label }}
+        </button>
+        {% endfor %}
+        <input type="hidden" name="board_react" :value="board_react"/>
+      </div>
+    </div>
+
+    {# ── 成長視覺 ── #}
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-title" style="margin:0 0 12px"><span class="dot"></span>成長視覺</div>
+      <div class="row wrap" style="gap:8px">
+        {% for value, label in form.fields.tree_style.choices %}
+        <button type="button"
+                class="chip"
+                @click="tree_style = '{{ value }}'"
+                :style="tree_style === '{{ value }}' ? 'background:var(--accent-tint);color:var(--accent-deep);border-color:var(--accent)' : ''">
+          {{ label }}
+        </button>
+        {% endfor %}
+        <input type="hidden" name="tree_style" :value="tree_style"/>
+      </div>
+    </div>
+
+    {# ── 柔光背景 ── #}
+    <div class="card" style="margin-bottom:20px">
+      <label class="row between" style="align-items:center;cursor:pointer">
+        <div>
+          <div style="font-weight:600;font-size:16px">柔光漸層背景</div>
+          <p class="muted" style="font-size:13px;margin:4px 0 0">關閉後改用純米白色底</p>
+        </div>
+        <input type="checkbox" name="soft_bg"
+               {% if form.instance.soft_bg %}checked{% endif %}/>
+      </label>
+    </div>
+
+    <button class="btn btn-lg" type="submit">儲存偏好</button>
+  </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

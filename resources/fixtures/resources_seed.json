@@ -1,0 +1,263 @@
+[
+  {
+    "model": "resources.psychoarticle",
+    "pk": 1,
+    "fields": {
+      "title": "當壓力滿出來時，先做這 3 件事",
+      "category": "壓力管理",
+      "read_minutes": 4,
+      "excerpt": "壓力不是敵人，它是身體在提醒你「需要被照顧了」。學會辨識身體訊號，用呼吸與書寫幫自己降載。",
+      "content_markdown": "",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoarticle",
+    "pk": 2,
+    "fields": {
+      "title": "情緒沒有好壞，只有需要被聽見",
+      "category": "情緒覺察",
+      "read_minutes": 5,
+      "excerpt": "我們常急著趕走難過。其實每個情緒都帶著訊息，練習「命名情緒」，是與自己和解的第一步。",
+      "content_markdown": "",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoarticle",
+    "pk": 3,
+    "fields": {
+      "title": "與焦慮共處：把「萬一」變成「就算」",
+      "category": "焦慮",
+      "read_minutes": 6,
+      "excerpt": "焦慮愛問「萬一⋯⋯怎麼辦」。試著改成「就算發生了，我可以⋯⋯」，把失控感轉回掌控感。",
+      "content_markdown": "",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoarticle",
+    "pk": 4,
+    "fields": {
+      "title": "睡不著的夜晚，先別逼自己睡著",
+      "category": "睡眠",
+      "read_minutes": 4,
+      "excerpt": "越逼自己入睡越清醒。建立溫柔的睡前儀式，讓身體知道：現在很安全，可以放鬆了。",
+      "content_markdown": "",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoarticle",
+    "pk": 5,
+    "fields": {
+      "title": "照顧自己，從一杯水一次深呼吸開始",
+      "category": "自我照顧",
+      "read_minutes": 3,
+      "excerpt": "自我照顧不必很盛大。微小而持續的善待，會慢慢長成心裡的韌性。",
+      "content_markdown": "",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoarticle",
+    "pk": 6,
+    "fields": {
+      "title": "設立界線，不是拒絕愛，而是保護愛",
+      "category": "人際關係",
+      "read_minutes": 5,
+      "excerpt": "說「不」會內疚嗎？界線讓關係更長久。練習溫柔而堅定地表達自己的需要。",
+      "content_markdown": "",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoscale",
+    "pk": 1,
+    "fields": {
+      "name": "心情溫度計 BSRS-5",
+      "org": "台灣自殺防治學會",
+      "external_url": "https://www.tsos.org.tw/web/page/bsrs",
+      "note": "5 題快速自我檢測近一週的身心困擾程度。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoscale",
+    "pk": 2,
+    "fields": {
+      "name": "憂鬱情緒自我檢測",
+      "org": "董氏基金會 華文心理健康網",
+      "external_url": "https://www.etmh.org/Online_tool/detection4",
+      "note": "針對憂鬱情緒的線上篩檢與衛教資源。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoscale",
+    "pk": 3,
+    "fields": {
+      "name": "憂鬱症自我檢測",
+      "org": "台灣憂鬱症防治協會",
+      "external_url": "https://www.depression.org.tw/detection/index_04.asp",
+      "note": "協助初步了解自身憂鬱傾向的參考量表。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychoscale",
+    "pk": 4,
+    "fields": {
+      "name": "免費心理量表評估",
+      "org": "華人心理治療研究發展基金會",
+      "external_url": "https://www.tip.org.tw/evaluatefree",
+      "note": "提供多種免費線上心理測驗與評估工具。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychovideo",
+    "pk": 1,
+    "fields": {
+      "name": "周慕姿 放心說",
+      "lang": "中文",
+      "url": "https://www.youtube.com/@muerstalk",
+      "desc": "諮商心理師談關係與情緒界線。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychovideo",
+    "pk": 2,
+    "fields": {
+      "name": "哇賽心理學",
+      "lang": "中文",
+      "url": "https://www.youtube.com/@onyourpsy",
+      "desc": "用科學角度聊生活裡的心理學。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychovideo",
+    "pk": 3,
+    "fields": {
+      "name": "Therapy in a Nutshell",
+      "lang": "English",
+      "url": "https://www.youtube.com/@TherapyinaNutshell",
+      "desc": "治療師帶你練習情緒調節技巧。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychopodcast",
+    "pk": 1,
+    "fields": {
+      "name": "身心難路上的身心科",
+      "url": "https://linktr.ee/psychiatricroad",
+      "desc": "身心科醫師的臨床日常分享。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychopodcast",
+    "pk": 2,
+    "fields": {
+      "name": "朱芯儀說心理話",
+      "url": "https://chuchu.firstory.io/episodes",
+      "desc": "諮商心理師的溫柔對談。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.psychopodcast",
+    "pk": 3,
+    "fields": {
+      "name": "遠距抱抱",
+      "url": "https://open.spotify.com/show/5d3ikTdxJ6eMcV2U1wTWDf",
+      "desc": "給疲憊心靈的溫柔陪伴。",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 1,
+    "fields": { "name": "松德身心科診所", "clinic_type": "身心科", "county": "臺北市", "district": "信義區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 2,
+    "fields": { "name": "安然心理諮商所", "clinic_type": "諮商所", "county": "臺北市", "district": "大安區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 3,
+    "fields": { "name": "晴天身心診所", "clinic_type": "身心科", "county": "臺北市", "district": "中山區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 4,
+    "fields": { "name": "光合心理諮商所", "clinic_type": "諮商所", "county": "新北市", "district": "板橋區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 5,
+    "fields": { "name": "微光身心科", "clinic_type": "身心科", "county": "新北市", "district": "新店區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 6,
+    "fields": { "name": "好好生活諮商所", "clinic_type": "諮商所", "county": "臺中市", "district": "西屯區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 7,
+    "fields": { "name": "暖心心理諮商所", "clinic_type": "諮商所", "county": "高雄市", "district": "苓雅區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 8,
+    "fields": { "name": "日和身心科診所", "clinic_type": "身心科", "county": "高雄市", "district": "三民區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 9,
+    "fields": { "name": "拾光心理諮商所", "clinic_type": "諮商所", "county": "臺南市", "district": "東區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  },
+  {
+    "model": "resources.clinic",
+    "pk": 10,
+    "fields": { "name": "溫室心理諮商所", "clinic_type": "諮商所", "county": "桃園市", "district": "中壢區", "address": "", "phone": "", "is_active": true, "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z" }
+  }
+]

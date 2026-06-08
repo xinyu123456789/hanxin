@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load allauth %}
+{% block title %}登入 · 涵心{% endblock %}
+
+{% block screen %}
+<div class="screen" style="display:flex;align-items:center;justify-content:center;min-height:70vh">
+  <div class="card knit" style="max-width:420px;width:100%;padding:32px">
+    <div class="brand" style="justify-content:center;margin-bottom:24px">
+      <div class="brand-mark"><span>🧸</span></div>
+      <div>
+        <div class="brand-name">涵心</div>
+        <div class="brand-sub">陪你慢慢好起來</div>
+      </div>
+    </div>
+
+    <h2 style="font-size:20px;font-weight:700;text-align:center;margin-bottom:20px">歡迎回來</h2>
+
+    <form method="post" action="{% url 'account_login' %}">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:14px">
+        <label style="font-size:13px;color:var(--ink-soft);display:block;margin-bottom:5px">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:var(--peach-deep);font-size:12px;margin-top:3px">{{ field.errors.0 }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      {% if form.non_field_errors %}
+      <div style="color:var(--peach-deep);font-size:13px;margin-bottom:12px">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+      <button class="btn btn-lg" type="submit" style="width:100%;margin-top:6px">登入</button>
+    </form>
+
+    <div style="text-align:center;margin-top:16px;font-size:14px">
+      還沒有帳號？<a href="{% url 'account_signup' %}" style="color:var(--accent)">立即註冊</a>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button onclick="history.back()" type="button"
+              class="btn btn-ghost" style="font-size:13px;padding:6px 16px">← 返回</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

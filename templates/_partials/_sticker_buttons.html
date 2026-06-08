@@ -1,0 +1,68 @@
+{% load static %}
+<div class="row wrap" style="gap:8px">
+
+  {# 抱抱 #}
+  <form hx-post="{% url 'board_react' post.id %}" hx-vals='{"sticker":"hug"}'
+        hx-target="#react-{{ post.id }}" hx-swap="innerHTML" style="display:contents">
+    {% csrf_token %}
+    <button type="submit" class="row" style="
+      gap:6px;padding:6px 11px 6px 6px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;
+      background:{% if 'hug' in mine %}var(--peach-tint){% else %}var(--surface-2){% endif %};
+      border:2px solid {% if 'hug' in mine %}var(--peach){% else %}var(--line){% endif %};
+      transition:all .15s">
+      <span style="width:26px;height:26px;border-radius:8px;overflow:hidden;background:#fff;padding:2px;flex:0 0 auto;display:block">
+        <img src="{% static 'img/assets/sticker-hug.png' %}" alt="抱抱" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>
+      </span>
+      抱抱 <span style="color:var(--ink-faint)">{{ counts.hug }}</span>
+    </button>
+  </form>
+
+  {# 拍拍 #}
+  <form hx-post="{% url 'board_react' post.id %}" hx-vals='{"sticker":"pat"}'
+        hx-target="#react-{{ post.id }}" hx-swap="innerHTML" style="display:contents">
+    {% csrf_token %}
+    <button type="submit" class="row" style="
+      gap:6px;padding:6px 11px 6px 6px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;
+      background:{% if 'pat' in mine %}var(--peach-tint){% else %}var(--surface-2){% endif %};
+      border:2px solid {% if 'pat' in mine %}var(--peach){% else %}var(--line){% endif %};
+      transition:all .15s">
+      <span style="width:26px;height:26px;border-radius:8px;overflow:hidden;background:#fff;padding:2px;flex:0 0 auto;display:block">
+        <img src="{% static 'img/assets/sticker-pat.png' %}" alt="拍拍" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>
+      </span>
+      拍拍 <span style="color:var(--ink-faint)">{{ counts.pat }}</span>
+    </button>
+  </form>
+
+  {# 擊掌 #}
+  <form hx-post="{% url 'board_react' post.id %}" hx-vals='{"sticker":"highfive"}'
+        hx-target="#react-{{ post.id }}" hx-swap="innerHTML" style="display:contents">
+    {% csrf_token %}
+    <button type="submit" class="row" style="
+      gap:6px;padding:6px 11px 6px 6px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;
+      background:{% if 'highfive' in mine %}var(--peach-tint){% else %}var(--surface-2){% endif %};
+      border:2px solid {% if 'highfive' in mine %}var(--peach){% else %}var(--line){% endif %};
+      transition:all .15s">
+      <span style="width:26px;height:26px;border-radius:8px;overflow:hidden;background:#fff;padding:2px;flex:0 0 auto;display:block">
+        <img src="{% static 'img/assets/sticker-highfive.png' %}" alt="擊掌" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>
+      </span>
+      擊掌 <span style="color:var(--ink-faint)">{{ counts.highfive }}</span>
+    </button>
+  </form>
+
+  {# 暖暖的 #}
+  <form hx-post="{% url 'board_react' post.id %}" hx-vals='{"sticker":"warm"}'
+        hx-target="#react-{{ post.id }}" hx-swap="innerHTML" style="display:contents">
+    {% csrf_token %}
+    <button type="submit" class="row" style="
+      gap:6px;padding:6px 11px 6px 6px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;
+      background:{% if 'warm' in mine %}var(--peach-tint){% else %}var(--surface-2){% endif %};
+      border:2px solid {% if 'warm' in mine %}var(--peach){% else %}var(--line){% endif %};
+      transition:all .15s">
+      <span style="width:26px;height:26px;border-radius:8px;overflow:hidden;background:#fff;padding:2px;flex:0 0 auto;display:block">
+        <img src="{% static 'img/assets/sticker-warm.png' %}" alt="暖暖的" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>
+      </span>
+      暖暖的 <span style="color:var(--ink-faint)">{{ counts.warm }}</span>
+    </button>
+  </form>
+
+</div>

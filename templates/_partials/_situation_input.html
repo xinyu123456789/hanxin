@@ -1,0 +1,84 @@
+{% load static %}
+<div id="situation-card"
+     x-data="{
+       mode: 'text',
+       choice: '',
+       hasText: false,
+       switchToChoice() { this.mode = 'choice'; this.choice = ''; },
+       selectChoice(c)  { this.choice = c; }
+     }">
+
+  {# 題目 #}
+  <p style="font-size:16px;line-height:1.85;color:var(--ink);margin:0 0 16px;font-weight:500">
+    {{ question.content }}
+  </p>
+
+  <form hx-post="{% url 'situation_submit' %}"
+        hx-target="#situation-card"
+        hx-swap="outerHTML"
+        hx-disabled-elt="find button[type=submit]"
+        style="display:flex;flex-direction:column;gap:12px">
+    {% csrf_token %}
+    <input type="hidden" name="question_id" value="{{ question.id }}"/>
+    <input type="hidden" name="mode" :value="mode"/>
+    <input type="hidden" name="choice" :value="choice"/>
+
+    {# 簡答模式 #}
+    <div x-show="mode==='text'">
+      <textarea name="text_answer" rows="3"
+                placeholder="說說你的想法⋯⋯"
+                @input="hasText = $el.value.trim().length > 0"
+                style="resize:none;font-size:14px"></textarea>
+
+      {# 公開設定 #}
+      <label class="row" style="gap:8px;margin-top:8px;cursor:pointer;align-items:center">
+        <input type="checkbox" name="is_public" value="true" checked
+               style="width:18px;height:18px;flex:0 0 auto"/>
+        <span style="font-size:12.5px;color:var(--ink-soft)">讓其他人看到我的回答</span>
+      </label>
+    </div>
+
+    {# 選擇題模式：任務列風格 #}
+    <div x-show="mode==='choice'" x-cloak style="display:flex;flex-direction:column;gap:0">
+      {% for opt, label in question.options %}
+      <div @click="selectChoice('{{ opt }}')"
+           :class="choice==='{{ opt }}' ? 'situation-opt--active' : 'situation-opt--idle'"
+           style="display:flex;align-items:center;gap:12px;padding:11px 14px;
+                  border-radius:16px;border:2px solid;cursor:pointer;transition:all .18s;
+                  margin-bottom:9px">
+        <div :class="choice==='{{ opt }}' ? 'situation-badge--active' : 'situation-badge--idle'"
+             style="width:26px;height:26px;border-radius:9px;flex:0 0 auto;display:grid;
+                    place-items:center;font-size:13px;font-weight:800;border:2px solid;
+                    pointer-events:none;transition:all .15s">
+          {{ opt|upper }}
+        </div>
+        <span style="font-size:14px;font-weight:600;color:var(--ink)">{{ label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# 底部操作列 #}
+    <div class="row between" style="align-items:center;gap:8px;margin-top:4px">
+      {# 文字模式：右下顯示「不知道怎麼回答？」 #}
+      <button x-show="mode==='text'" @click.prevent="switchToChoice()"
+              type="button" class="btn btn-ghost btn-sm"
+              style="font-size:12px;color:var(--ink-faint)">
+        不知道怎麼回答？
+      </button>
+      {# 選擇題模式：左下顯示返回簡答 #}
+      <button x-show="mode==='choice'" x-cloak @click.prevent="mode='text'; choice=''"
+              type="button" class="btn btn-ghost btn-sm"
+              style="font-size:12px;color:var(--ink-faint)">
+        ← 改用文字回答
+      </button>
+
+      <button type="submit"
+              :disabled="(mode==='text' && !hasText) || (mode==='choice' && choice==='')"
+              :style="(mode==='text' && !hasText) || (mode==='choice' && choice==='')
+                ? 'opacity:.4;cursor:not-allowed' : ''"
+              class="btn btn-sm" style="flex-shrink:0">
+        送出
+      </button>
+    </div>
+  </form>
+</div>
