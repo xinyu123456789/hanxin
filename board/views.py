@@ -30,6 +30,24 @@ def _build_posts_data(posts, user):
     return posts_data
 
 
+def _today_feed_context(user):
+    """今天的「大家的心情」feed context（posts_data + board_react）。
+    BoardView 與 board_search（空字串時）共用。"""
+    today = timezone.localdate()
+    posts = (
+        BoardPost.objects
+        .filter(is_deleted=False, created_at__date=today)
+        .select_related("preset_icon", "preset_message", "user", "user__profile")
+        .prefetch_related("reactions")
+        .order_by("-created_at")[:100]
+    )
+    pref = getattr(user, "preference", None)
+    return {
+        "posts_data": _build_posts_data(posts, user),
+        "board_react": pref.board_react if pref else "tray",
+    }
+
+
 class BoardView(TemplateView):
     template_name = "board.html"
 
@@ -41,20 +59,7 @@ class BoardView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        today = timezone.localdate()
-        posts = (
-            BoardPost.objects
-            .filter(is_deleted=False, created_at__date=today)
-            .select_related("preset_icon", "preset_message", "user", "user__profile")
-            .prefetch_related("reactions")
-            .order_by("-created_at")[:100]
-        )
-
-        ctx["posts_data"] = _build_posts_data(posts, user)
-        pref = getattr(user, "preference", None)
-        ctx["board_react"] = pref.board_react if pref else "tray"
+        ctx.update(_today_feed_context(self.request.user))
         return ctx
 
 
@@ -142,19 +147,22 @@ def board_mine(request):
 
 
 def board_search(request):
-    """依暱稱搜尋「不匿名」貼文，跨全部歷史。訪客也可搜尋瀏覽（與 BoardView 一致）。"""
+    """依暱稱搜尋「不匿名」貼文，跨全部歷史。訪客也可搜尋瀏覽（與 BoardView 一致）。
+    清空搜尋字串時（含瀏覽器原生清除按鈕觸發的 search 事件），回傳今天的「大家的心情」feed，
+    與點擊「大家的心情」/「清除搜尋」按鈕的結果一致。"""
     query = request.GET.get("nickname", "").strip()
-    posts_data = []
-    if query:
-        posts = (
-            BoardPost.objects
-            .filter(is_deleted=False, is_anonymous=False,
-                    user__profile__nickname__icontains=query)
-            .select_related("preset_icon", "preset_message", "user", "user__profile")
-            .prefetch_related("reactions")
-            .order_by("-created_at")[:50]
-        )
-        posts_data = _build_posts_data(posts, request.user)
+    if not query:
+        return render(request, "_partials/_board_feed.html", _today_feed_context(request.user))
+
+    posts = (
+        BoardPost.objects
+        .filter(is_deleted=False, is_anonymous=False,
+                user__profile__nickname__icontains=query)
+        .select_related("preset_icon", "preset_message", "user", "user__profile")
+        .prefetch_related("reactions")
+        .order_by("-created_at")[:50]
+    )
+    posts_data = _build_posts_data(posts, request.user)
 
     pref = getattr(request.user, "preference", None) if request.user.is_authenticated else None
     return render(request, "_partials/_board_search_results.html", {

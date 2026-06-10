@@ -105,6 +105,7 @@ class UserPreference(TimeStampedModel):
         ("tree", "心情樹"),
         ("garden", "花園"),
         ("jar", "感謝罐"),
+        ("sky", "星空"),
     ]
 
     user = models.OneToOneField(

@@ -34,18 +34,18 @@
   </div>
   {% endif %}
 
-  {# ── 大家的天氣 / 我的心情 / 搜尋 ── #}
+  {# ── 大家的心情 / 我的心情 / 搜尋 ── #}
   <div x-data="{tab:'all'}">
     <div class="row between" style="margin-top:24px;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <h2 class="section-title" style="color:var(--sky-deep);margin:0">
         <span class="dot" style="background:var(--sky-deep)"></span>
-        <span x-text="tab==='all' ? '大家的天氣' : (tab==='mine' ? '我的心情' : '搜尋結果')">大家的天氣</span>
+        <span x-text="tab==='all' ? '大家的心情' : (tab==='mine' ? '我的心情' : '搜尋結果')">大家的心情</span>
       </h2>
       {% if user.is_authenticated %}
       <div class="row" style="gap:8px">
         <button class="chip" :class="tab==='all' ? 'on' : ''" @click="tab='all'"
-                hx-get="{% url 'board' %}" hx-target="#board-feed" hx-swap="innerHTML" type="button">🌦️ 大家的</button>
-        <button class="chip" :class="tab==='mine' ? 'on' : ''" @click="tab='mine'"
+                hx-get="{% url 'board' %}" hx-target="#board-feed" hx-swap="innerHTML" type="button">🌦️ 大家的心情</button>
+        <button class="chip" :class="tab==='mine' ? 'on' : ''" @click="tab='mine'; $refs.searchInput.value=''"
                 hx-get="{% url 'board_mine' %}" hx-target="#board-feed" hx-swap="innerHTML" type="button">🙋 我的心情</button>
         <button class="chip" x-show="tab==='search'" x-cloak
                 @click="tab='all'; $refs.searchInput.value=''"
@@ -54,7 +54,7 @@
       {% endif %}
     </div>
 
-    <div class="row" style="gap:8px;margin-bottom:12px">
+    <div class="row" x-show="tab !== 'mine'" style="gap:8px;margin-bottom:12px">
       <input type="search" name="nickname" x-ref="searchInput"
              placeholder="🔍 依暱稱搜尋不匿名的心情⋯"
              class="form-input" style="flex:1"

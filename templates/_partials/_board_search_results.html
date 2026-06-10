@@ -1,10 +1,5 @@
 {% load static %}
-{% if not query %}
-<div class="card center" style="grid-column:1/-1;padding:48px">
-  <div style="font-size:48px">🔍</div>
-  <p class="muted">輸入暱稱開始搜尋不匿名的心情貼文</p>
-</div>
-{% elif posts_data %}
+{% if posts_data %}
 {% for pd in posts_data %}
 {% include "_partials/_board_post.html" %}
 {% endfor %}

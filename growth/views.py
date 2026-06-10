@@ -18,56 +18,113 @@ from board.models import PresetMessage
 
 def _build_viz_ctx(user, tree_style: str, tree_points: int, prev_tree_points: int = -1) -> dict:
     """樹/花園/罐視覺化座標預算，回傳 template context dict。"""
-    COLORS = ['#F0A985', '#E47B72', '#F3D08A', '#CDB8DE']
-    FLOWER_COLORS = ['#F2A89F', '#F3D08A', '#CDB8DE', '#AAC8E0', '#A9C7A0', '#F0A985']
+    FLOWER_COLORS = ['#F2A89F', '#F3D08A', '#CDB8DE', '#AAC8E0', '#A9C7A0', '#F0A985', '#E8C5D8', '#A7D8D0']
     ctx: dict = {}
 
     if tree_style == "tree":
-        MAX = 28
+        MAX = 36
         n = min(tree_points, MAX)
+        FRUIT_COLORS = ['#F0A985', '#E47B72', '#F3D08A', '#CDB8DE', '#9FCBE0', '#F2A89F']
+        # round 機率較高，當作主要果實，berry/heart/blossom 是點綴的「特色」造型
+        FRUIT_SHAPES = ['round', 'round', 'berry', 'heart', 'blossom']
+        FRUIT_SIZE = {'round': 17, 'berry': 19, 'heart': 18, 'blossom': 19}
         spots = []
         for i in range(n):
             ang = i * TREE_GOLDEN_ANGLE
             rr = 92 * 0.86 * math.sqrt((i + 0.5) / MAX)
             x = round(150 + math.cos(ang) * rr, 1)
             y = round(120 + math.sin(ang) * rr * 0.9, 1)
+            shape = FRUIT_SHAPES[i % len(FRUIT_SHAPES)]
+            size = FRUIT_SIZE[shape]
             spots.append({'x': x, 'y': y,
-                          'rx': round(x - 0.9, 1), 'ry': round(y - 9, 1),
-                          'hx': round(x - 3, 1),   'hy': round(y - 3.4, 1),
-                          'c': COLORS[i % 4]})
+                          'ux': round(x - size / 2, 1), 'uy': round(y - size / 2, 1),
+                          'size': size, 'shape': shape,
+                          'c': FRUIT_COLORS[i % len(FRUIT_COLORS)]})
         ctx['viz_spots'] = spots
 
     elif tree_style == "garden":
-        flowers = min(tree_points, 12)
+        MAX = 20
+        n = min(tree_points, MAX)
+        COLS = 10
+        # round 機率較高，當作主要花朵，daisy/tulip/pompom 是點綴的「特色」花型
+        FLOWER_SHAPES = ['round', 'round', 'daisy', 'tulip', 'pompom']
+        # 後排較小較遠、前排較大較近，營造花圃的景深
+        ROW_CFG = [
+            {'head_y': 150, 'stem_h': 26, 'size': 24, 'x_off': 0},
+            {'head_y': 192, 'stem_h': 36, 'size': 30, 'x_off': 13},
+        ]
         items = []
-        for i in range(flowers):
-            x = 40 + (i % 6) * 44 + (math.floor(i / 6) % 2) * 22
-            y = 150 + math.floor(i / 6) * 54
-            c = FLOWER_COLORS[i % len(FLOWER_COLORS)]
-            petals = []
-            for k in range(5):
-                a = (k / 5) * math.pi * 2
-                px = round(x + math.cos(a) * 9, 1)
-                py = round(y + math.sin(a) * 9, 1)
-                petals.append({'px': px, 'py': py, 'rot': round(a * 57 + 90, 1), 'c': c})
-            items.append({'x': x, 'y': y,
-                          'rx': round(x - 1.5, 1), 'base_y': round(y + 24, 1),
-                          'lx': round(x - 7, 1), 'ly': round(y + 18, 1),
-                          'petals': petals})
+        for i in range(n):
+            row, col = divmod(i, COLS)
+            cfg = ROW_CFG[row]
+            x = round(16 + col * 27 + cfg['x_off'], 1)
+            head_y, stem_h, size = cfg['head_y'], cfg['stem_h'], cfg['size']
+            items.append({
+                'x': x, 'rx': round(x - 1.5, 1),
+                'stem_y': head_y, 'stem_h': stem_h,
+                'base_y': round(head_y + stem_h * 0.7, 1),
+                'lx': round(x - 7, 1), 'ly': round(head_y + stem_h * 0.5, 1),
+                'ux': round(x - size / 2, 1), 'uy': round(head_y - size / 2, 1),
+                'size': size,
+                'shape': FLOWER_SHAPES[i % len(FLOWER_SHAPES)],
+                'c': FLOWER_COLORS[i % len(FLOWER_COLORS)],
+            })
         ctx['viz_flowers'] = items
 
+    elif tree_style == "sky":
+        MAX = 60
+        n = min(tree_points, MAX)
+        COLS, ROWS = 10, 6
+        CELL_W, CELL_H = 28, 34
+        PAD_X, PAD_Y = 10, 13
+        # dot 出現機率較高，當作背景小星星，spark/star5/star6 是較顯眼的「特色」星星
+        SHAPES = ["dot", "dot", "spark", "star5", "star6"]
+        SIZE_RANGE = {"dot": (5, 7), "spark": (8, 12), "star5": (10, 14), "star6": (13, 18)}
+        SKY_COLORS = ['#FDF6E3', '#FCE7B2', '#F7C6CE', '#E3D1FF', '#BFE3F5', '#C9F0D6']
+
+        cell_order = list(range(COLS * ROWS))
+        _random.seed(7)
+        _random.shuffle(cell_order)
+
+        stars = []
+        for i in range(n):
+            cell = cell_order[i % len(cell_order)]
+            col, row = cell % COLS, cell // COLS
+            cx = round(PAD_X + col * CELL_W + CELL_W / 2 + _random.uniform(-9, 9), 1)
+            cy = round(PAD_Y + row * CELL_H + CELL_H / 2 + _random.uniform(-10, 10), 1)
+            shape = SHAPES[_random.randint(0, len(SHAPES) - 1)]
+            lo, hi = SIZE_RANGE[shape]
+            size = round(_random.uniform(lo, hi), 1)
+            stars.append({
+                'cx': cx, 'cy': cy, 'size': size,
+                'ux': round(cx - size / 2, 1), 'uy': round(cy - size / 2, 1),
+                'shape': shape,
+                'c': SKY_COLORS[_random.randint(0, len(SKY_COLORS) - 1)],
+                'dur': round(_random.uniform(1.8, 3.4), 2),
+                'delay': round(_random.uniform(0, 2.4), 2),
+            })
+        _random.seed()
+        ctx['viz_stars'] = stars
+
     else:  # jar
-        fill = min(tree_points / 14, 1)
+        MAX = 24
+        n = min(tree_points, MAX)
+        fill = min(tree_points / 20, 1)
+        JAR_COLORS = ['#F3D08A', '#F2A89F', '#CDB8DE', '#AAC8E0', '#A9C7A0', '#E8C5D8', '#A7D8D0']
+        JAR_CHARS = ['✦', '♥', '✿', '❀', '✶', '♦']
         jar_stars = []
-        STAR_COLORS = ['#F3D08A', '#F2A89F', '#CDB8DE', '#AAC8E0', '#A9C7A0']
-        STAR_CHARS = ['✦', '♥', '✿']
         _random.seed(42)
-        for i in range(min(tree_points, 16)):
+        for i in range(n):
             sx = round(110 + _random.random() * 80, 1)
-            sy = round(232 - _random.random() * (fill * 120 + 10), 1)
-            jar_stars.append({'x': sx, 'y': sy,
-                              'c': STAR_COLORS[i % len(STAR_COLORS)],
-                              'char': STAR_CHARS[i % 3]})
+            sy = round(232 - _random.random() * (fill * 130 + 10), 1)
+            jar_stars.append({
+                'x': sx, 'y': sy,
+                'size': round(_random.uniform(12, 20), 1),
+                'c': JAR_COLORS[i % len(JAR_COLORS)],
+                'char': JAR_CHARS[i % len(JAR_CHARS)],
+                'dur': round(_random.uniform(1.8, 3.4), 2),
+                'delay': round(_random.uniform(0, 2.4), 2),
+            })
         _random.seed()
         ctx['viz_jar'] = {'fill_y': round(232 - fill * 150, 1),
                           'fill_h': round(fill * 160, 1),

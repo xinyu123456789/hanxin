@@ -32,7 +32,7 @@
         <span id="kudos-submit-loading" class="htmx-indicator muted" style="font-size:13px">
           記錄中…
         </span>
-        <button class="btn" type="submit">在花園記本 💛</button>
+        <button class="btn" type="submit">{% if tree_style == "garden" %}在花園種下一朵花 🌸{% elif tree_style == "jar" %}放進感謝罐 ✨{% elif tree_style == "sky" %}點亮一顆星星 🌟{% else %}幫心情樹結一顆果實 🍑{% endif %}</button>
       </div>
     </form>
   </div>

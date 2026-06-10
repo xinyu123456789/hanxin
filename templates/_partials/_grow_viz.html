@@ -4,65 +4,214 @@
   <div class="row between" style="margin-bottom:12px;align-items:center">
     <h2 class="section-title" style="margin:0">
       <span class="dot" style="background:var(--sage-deep)"></span>
-      {% if tree_style == "garden" %}我的小花園{% elif tree_style == "jar" %}我的感謝罐{% else %}我的心情樹{% endif %}
+      {% if tree_style == "garden" %}我的小花園{% elif tree_style == "jar" %}我的感謝罐{% elif tree_style == "sky" %}我的星空{% else %}我的心情樹{% endif %}
     </h2>
     <span class="tag" style="background:var(--sage-tint);color:var(--sage-deep)">已累積 {{ tree_points }} 份</span>
   </div>
 
   {% if tree_style == "tree" %}
-  <svg viewBox="0 0 300 290" style="width:100%;max-width:340px;display:block;margin:0 auto">
+  <svg viewBox="0 0 300 290" style="width:100%;max-width:340px;display:block;margin:0 auto;border-radius:18px">
+    <defs>
+      <linearGradient id="treeSky" x1="0" y1="0" x2="0" y2="290" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FFF6E9"/>
+        <stop offset="55%" stop-color="#FDEEDD"/>
+        <stop offset="100%" stop-color="#E7F1DF"/>
+      </linearGradient>
+      <symbol id="fruit-round" viewBox="-10 -10 20 20">
+        <circle r="9"/>
+        <circle cx="-3" cy="-3.4" r="3" fill="rgba(255,255,255,.55)"/>
+      </symbol>
+      <symbol id="fruit-berry" viewBox="-10 -10 20 20">
+        <circle cx="-3.5" cy="2" r="5.5"/>
+        <circle cx="3.5" cy="2" r="5.5"/>
+        <circle cx="0" cy="-4" r="5.5"/>
+        <circle cx="-1.2" cy="-5.6" r="1.6" fill="rgba(255,255,255,.5)"/>
+      </symbol>
+      <symbol id="fruit-heart" viewBox="-10 -10 20 20">
+        <path d="M0 7 C-8 0.5 -9 -6 -3.5 -7.5 C-1 -8.2 0 -5.5 0 -4 C0 -5.5 1 -8.2 3.5 -7.5 C9 -6 8 0.5 0 7 Z"/>
+      </symbol>
+      <symbol id="fruit-blossom" viewBox="-10 -10 20 20">
+        <g>
+          <ellipse cx="0" cy="-5" rx="4" ry="5"/>
+          <ellipse cx="0" cy="5" rx="4" ry="5"/>
+          <ellipse cx="-5" cy="0" rx="5" ry="4"/>
+          <ellipse cx="5" cy="0" rx="5" ry="4"/>
+        </g>
+        <circle r="3" fill="#FBF3E2"/>
+        <circle r="1.6" fill="#E6B85B"/>
+      </symbol>
+    </defs>
+
+    <rect width="300" height="290" rx="18" fill="url(#treeSky)"/>
+    <circle cx="250" cy="44" r="28" fill="#FCE7B2" opacity=".45"/>
+    <circle cx="250" cy="44" r="17" fill="#FDF1CB"/>
+    <g fill="#fff" opacity=".75">
+      <ellipse cx="58" cy="38" rx="24" ry="10"/>
+      <ellipse cx="76" cy="34" rx="16" ry="8"/>
+      <ellipse cx="40" cy="35" rx="14" ry="7"/>
+    </g>
+    <path d="M170 52 Q176 46 182 52 Q188 46 194 52" stroke="#C9A98E" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M0 232 Q80 208 180 224 Q240 234 300 218 L300 290 L0 290 Z" fill="#DCEBD2"/>
+
     <ellipse cx="150" cy="272" rx="92" ry="13" fill="rgba(94,74,60,.10)"/>
     <rect x="139" y="162" width="22" height="104" rx="11" fill="#B98E66"/>
     <path d="M150 212 Q116 192 100 156" stroke="#B98E66" stroke-width="13" fill="none" stroke-linecap="round"/>
     <path d="M150 196 Q186 178 202 150" stroke="#B98E66" stroke-width="13" fill="none" stroke-linecap="round"/>
-    <circle cx="98" cy="128" r="58" fill="#A9C7A0"/>
-    <circle cx="202" cy="128" r="58" fill="#A9C7A0"/>
-    <circle cx="150" cy="86" r="62" fill="#B6D3AC"/>
-    <circle cx="150" cy="132" r="66" fill="#BBD3B0"/>
-    <circle cx="118" cy="108" r="44" fill="#C4DDBA"/>
-    <circle cx="184" cy="110" r="40" fill="#C4DDBA"/>
-    {% for s in viz_spots %}
-    {% if hx_oob %}
-      {% if forloop.counter0 >= prev_tree_points %}
-      <g style="animation:growIn .45s ease both;transform-origin:{{ s.x }}px {{ s.y }}px">
-      {% else %}
-      <g style="transform-origin:{{ s.x }}px {{ s.y }}px">
-      {% endif %}
-    {% else %}
-      <g style="animation:growIn .45s ease {{ forloop.counter0|anim_delay }}s both;transform-origin:{{ s.x }}px {{ s.y }}px">
-    {% endif %}
-      <rect x="{{ s.rx }}" y="{{ s.ry }}" width="1.8" height="6" fill="#9C7A56"/>
-      <circle cx="{{ s.x }}" cy="{{ s.y }}" r="9" fill="{{ s.c }}"/>
-      <circle cx="{{ s.hx }}" cy="{{ s.hy }}" r="2.8" fill="rgba(255,255,255,.6)"/>
+
+    <g style="animation:treeSway 7s ease-in-out infinite;transform-origin:150px 160px">
+      <circle cx="98" cy="128" r="58" fill="#A9C7A0"/>
+      <circle cx="202" cy="128" r="58" fill="#A9C7A0"/>
+      <circle cx="150" cy="86" r="62" fill="#B6D3AC"/>
+      <circle cx="150" cy="132" r="66" fill="#BBD3B0"/>
+      <circle cx="118" cy="108" r="44" fill="#C4DDBA"/>
+      <circle cx="184" cy="110" r="40" fill="#C4DDBA"/>
+      {% for s in viz_spots %}
+      <use href="#fruit-{{ s.shape }}" x="{{ s.ux }}" y="{{ s.uy }}" width="{{ s.size }}" height="{{ s.size }}"
+           fill="{{ s.c }}"
+           style="transform-origin:{{ s.x }}px {{ s.y }}px;{% if hx_oob %}{% if forloop.counter0 >= prev_tree_points %}animation:growIn .45s ease both;{% endif %}{% else %}animation:growIn .45s ease {{ forloop.counter0|anim_delay }}s both;{% endif %}"/>
+      {% empty %}
+      <text x="150" y="124" text-anchor="middle" font-size="13" fill="#86AC7C">寫下第一句誇誇，結出第一顆果實 🍑</text>
+      {% endfor %}
     </g>
-    {% empty %}
-    <text x="150" y="124" text-anchor="middle" font-size="13" fill="#86AC7C">寫下第一句誇誇，結出第一顆果實 🍑</text>
-    {% endfor %}
+
+    <g opacity=".85">
+      <ellipse cx="66" cy="266" rx="6" ry="3.2" fill="#F0A985" transform="rotate(18 66 266)"/>
+      <ellipse cx="226" cy="270" rx="5" ry="2.8" fill="#CDB8DE" transform="rotate(-14 226 270)"/>
+      <ellipse cx="150" cy="278" rx="5.5" ry="3" fill="#F3D08A" transform="rotate(6 150 278)"/>
+    </g>
   </svg>
 
   {% elif tree_style == "garden" %}
-  <svg viewBox="0 0 300 250" style="width:100%;max-width:340px;display:block;margin:0 auto">
-    <path d="M0 200 Q150 178 300 200 L300 250 L0 250 Z" fill="#E1EDDA"/>
-    <path d="M0 214 Q150 196 300 214 L300 250 L0 250 Z" fill="#CFE2C5"/>
+  <svg viewBox="0 0 300 260" style="width:100%;max-width:340px;display:block;margin:0 auto;border-radius:18px">
+    <defs>
+      <linearGradient id="gardenSky" x1="0" y1="0" x2="0" y2="260" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FDF6E9"/>
+        <stop offset="100%" stop-color="#F3F8EC"/>
+      </linearGradient>
+      <symbol id="flower-round" viewBox="-12 -12 24 24">
+        <g>
+          <ellipse cx="0" cy="-9" rx="7" ry="10"/>
+          <ellipse cx="0" cy="-9" rx="7" ry="10" transform="rotate(72)"/>
+          <ellipse cx="0" cy="-9" rx="7" ry="10" transform="rotate(144)"/>
+          <ellipse cx="0" cy="-9" rx="7" ry="10" transform="rotate(216)"/>
+          <ellipse cx="0" cy="-9" rx="7" ry="10" transform="rotate(288)"/>
+        </g>
+        <circle r="6" fill="#FBF3E2"/>
+        <circle r="3" fill="#E6B85B"/>
+      </symbol>
+      <symbol id="flower-daisy" viewBox="-12 -12 24 24">
+        <g>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(45)"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(90)"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(135)"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(180)"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(225)"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(270)"/>
+          <ellipse cx="0" cy="-9" rx="2.4" ry="9" transform="rotate(315)"/>
+        </g>
+        <circle r="4.5" fill="#FBF3E2"/>
+        <circle r="2.6" fill="#E6B85B"/>
+      </symbol>
+      <symbol id="flower-tulip" viewBox="-12 -12 24 24">
+        <ellipse cx="0" cy="-6" rx="4.2" ry="7.5"/>
+        <ellipse cx="-5.5" cy="-2.5" rx="4.2" ry="7.5" transform="rotate(-25 -5.5 -2.5)"/>
+        <ellipse cx="5.5" cy="-2.5" rx="4.2" ry="7.5" transform="rotate(25 5.5 -2.5)"/>
+      </symbol>
+      <symbol id="flower-pompom" viewBox="-12 -12 24 24">
+        <g>
+          <circle cx="0" cy="0" r="4.6"/>
+          <circle cx="0" cy="-7.2" r="3.4"/>
+          <circle cx="0" cy="7.2" r="3.4"/>
+          <circle cx="-7.2" cy="0" r="3.4"/>
+          <circle cx="7.2" cy="0" r="3.4"/>
+          <circle cx="-5.2" cy="-5.2" r="3.1"/>
+          <circle cx="5.2" cy="-5.2" r="3.1"/>
+          <circle cx="-5.2" cy="5.2" r="3.1"/>
+          <circle cx="5.2" cy="5.2" r="3.1"/>
+        </g>
+      </symbol>
+    </defs>
+
+    <rect width="300" height="260" rx="18" fill="url(#gardenSky)"/>
+    <circle cx="252" cy="36" r="22" fill="#FCE7B2" opacity=".5"/>
+    <circle cx="252" cy="36" r="13" fill="#FDF1CB"/>
+    <g fill="#F2A89F" opacity=".85">
+      <path d="M50 44 Q44 38 50 34 Q56 38 50 44 Q56 38 62 34 Q68 38 62 44 Q56 48 50 44Z"/>
+    </g>
+    <g fill="#AAC8E0" opacity=".85">
+      <path d="M214 64 Q209 59 214 55 Q219 59 214 64 Q219 59 224 55 Q229 59 224 64 Q219 68 214 64Z"/>
+    </g>
+
+    <path d="M0 200 Q150 178 300 200 L300 260 L0 260 Z" fill="#E1EDDA"/>
+    <path d="M0 222 Q150 202 300 222 L300 260 L0 260 Z" fill="#CFE2C5"/>
+
     {% if not viz_flowers %}
     <text x="150" y="150" text-anchor="middle" font-size="14" fill="#B4A491">寫下第一句誇誇，種下第一朵花 🌱</text>
     {% endif %}
     {% for flower in viz_flowers %}
-    <g style="{% if hx_oob and forloop.last %}animation:growIn .5s ease both;{% endif %}transform-origin:{{ flower.x }}px {{ flower.base_y }}px">
-      <rect x="{{ flower.rx }}" y="{{ flower.y }}" width="3" height="34" rx="1.5" fill="#86AC7C"/>
+    <g style="transform-origin:{{ flower.x }}px {{ flower.base_y }}px;{% if hx_oob %}{% if forloop.counter0 >= prev_tree_points %}animation:growIn .5s ease both;{% endif %}{% else %}animation:growIn .5s ease {{ forloop.counter0|anim_delay }}s both;{% endif %}">
+      <rect x="{{ flower.rx }}" y="{{ flower.stem_y }}" width="3" height="{{ flower.stem_h }}" rx="1.5" fill="#86AC7C"/>
       <ellipse cx="{{ flower.lx }}" cy="{{ flower.ly }}" rx="7" ry="3.5" fill="#86AC7C" transform="rotate(-30 {{ flower.lx }} {{ flower.ly }})"/>
-      {% for p in flower.petals %}
-      <ellipse cx="{{ p.px }}" cy="{{ p.py }}" rx="7" ry="10" fill="{{ p.c }}" transform="rotate({{ p.rot }} {{ p.px }} {{ p.py }})"/>
-      {% endfor %}
-      <circle cx="{{ flower.x }}" cy="{{ flower.y }}" r="6" fill="#FBF3E2"/>
-      <circle cx="{{ flower.x }}" cy="{{ flower.y }}" r="3" fill="#E6B85B"/>
+      <use href="#flower-{{ flower.shape }}" x="{{ flower.ux }}" y="{{ flower.uy }}" width="{{ flower.size }}" height="{{ flower.size }}" fill="{{ flower.c }}"/>
     </g>
     {% endfor %}
+
+    <g opacity=".9">
+      <ellipse cx="36" cy="248" rx="5" ry="8" fill="#9BBE8E" transform="rotate(-15 36 248)"/>
+      <ellipse cx="46" cy="251" rx="5" ry="9" fill="#86AC7C" transform="rotate(10 46 251)"/>
+      <ellipse cx="262" cy="250" rx="5" ry="9" fill="#9BBE8E" transform="rotate(-12 262 250)"/>
+      <ellipse cx="272" cy="247" rx="5" ry="8" fill="#86AC7C" transform="rotate(14 272 247)"/>
+    </g>
+  </svg>
+
+  {% elif tree_style == "sky" %}
+  <svg viewBox="0 0 300 280" style="width:100%;max-width:360px;display:block;margin:0 auto;border-radius:18px">
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="280" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#2B2A55"/>
+        <stop offset="55%" stop-color="#433E7E"/>
+        <stop offset="100%" stop-color="#6F63AC"/>
+      </linearGradient>
+      <symbol id="star-spark" viewBox="-6 -6 12 12"><polygon points="0,-5 1.06,-1.06 5,0 1.06,1.06 0,5 -1.06,1.06 -5,0 -1.06,-1.06"/></symbol>
+      <symbol id="star-star5" viewBox="-6 -6 12 12"><polygon points="0,-5 1.18,-1.62 4.76,-1.55 1.9,0.62 2.94,4.05 0,2 -2.94,4.05 -1.9,0.62 -4.76,-1.55 -1.18,-1.62"/></symbol>
+      <symbol id="star-star6" viewBox="-6 -6 12 12"><polygon points="0,-5 1.1,-1.91 4.33,-2.5 2.2,0 4.33,2.5 1.1,1.91 0,5 -1.1,1.91 -4.33,2.5 -2.2,0 -4.33,-2.5 -1.1,-1.91"/></symbol>
+      <symbol id="star-dot" viewBox="-6 -6 12 12"><circle cx="0" cy="0" r="4.5"/></symbol>
+    </defs>
+    <rect width="300" height="280" rx="18" fill="url(#skyGrad)"/>
+    {% for star in viz_stars %}
+    <use href="#star-{{ star.shape }}" x="{{ star.ux }}" y="{{ star.uy }}" width="{{ star.size }}" height="{{ star.size }}"
+         fill="{{ star.c }}"
+         style="transform-origin:{{ star.cx }}px {{ star.cy }}px;animation:{% if hx_oob %}{% if forloop.counter0 >= prev_tree_points %}starPopIn .4s ease both, {% endif %}{% else %}starPopIn .4s ease {{ forloop.counter0|anim_delay:'0.03' }}s both, {% endif %}starTwinkle {{ star.dur }}s ease-in-out {{ star.delay }}s infinite"/>
+    {% empty %}
+    <text x="150" y="140" text-anchor="middle" font-size="14" fill="#EDE8FA">寫下第一句誇誇，點亮第一顆星星 ✨</text>
+    {% endfor %}
+    <circle cx="250" cy="38" r="32" fill="#FDF6E3" opacity=".12"/>
+    <circle cx="250" cy="38" r="20" fill="#FDF6E3"/>
+    <circle cx="259" cy="31" r="17" fill="url(#skyGrad)"/>
+    <path d="M0 230 Q150 208 300 230 L300 280 L0 280 Z" fill="#231F49"/>
   </svg>
 
   {% else %}
-  <svg viewBox="0 0 300 270" style="width:100%;max-width:300px;display:block;margin:0 auto">
+  <svg viewBox="0 0 300 270" style="width:100%;max-width:300px;display:block;margin:0 auto;border-radius:18px">
+    <defs>
+      <linearGradient id="jarBg" x1="0" y1="0" x2="0" y2="270" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#FDF6E9"/>
+        <stop offset="100%" stop-color="#F7EEE0"/>
+      </linearGradient>
+    </defs>
+    <rect width="300" height="270" rx="18" fill="url(#jarBg)"/>
+    <path d="M0 246 L300 246 L300 270 L0 270 Z" fill="#EFE2CC"/>
     <ellipse cx="150" cy="256" rx="64" ry="9" fill="rgba(94,74,60,.10)"/>
+
+    <g opacity=".95">
+      <line x1="104" y1="84" x2="88" y2="98" stroke="#C9A98E" stroke-width="1.5"/>
+      <g transform="rotate(-18 88 104)">
+        <rect x="76" y="96" width="24" height="17" rx="3" fill="#FBF3E2" stroke="#E0C9A0" stroke-width="1.5"/>
+        <circle cx="82" cy="104.5" r="1.6" fill="#C9A98E"/>
+      </g>
+    </g>
+
     <rect x="116" y="58" width="68" height="18" rx="6" fill="#E6CFA0"/>
     <path d="M100 78 Q100 70 112 70 L188 70 Q200 70 200 78 L196 232 Q196 246 182 246 L118 246 Q104 246 104 232 Z"
           fill="rgba(170,200,224,.22)" stroke="#C9B68C" stroke-width="3"/>
@@ -72,13 +221,21 @@
     <g clip-path="url(#jarclip)">
       <rect x="104" y="{{ viz_jar.fill_y }}" width="92" height="{{ viz_jar.fill_h }}" fill="rgba(243,208,138,.30)"/>
       {% for star in viz_jar.stars %}
-      <text x="{{ star.x }}" y="{{ star.y }}" font-size="15" fill="{{ star.c }}"
-            style="{% if hx_oob and forloop.last %}animation:growIn .4s ease both;{% endif %}">{{ star.char }}</text>
+      <text x="{{ star.x }}" y="{{ star.y }}" font-size="{{ star.size }}" fill="{{ star.c }}"
+            style="transform-origin:{{ star.x }}px {{ star.y }}px;animation:{% if hx_oob %}{% if forloop.counter0 >= prev_tree_points %}jarPopIn .4s ease both, {% endif %}{% else %}jarPopIn .4s ease {{ forloop.counter0|anim_delay:'0.03' }}s both, {% endif %}starTwinkle {{ star.dur }}s ease-in-out {{ star.delay }}s infinite">{{ star.char }}</text>
       {% empty %}
       <text x="150" y="180" text-anchor="middle" font-size="13" fill="#B4A491">寫下第一句誇誇 🌟</text>
       {% endfor %}
+      <path d="M115 78 L124 78 L114 236 L105 236 Z" fill="rgba(255,255,255,.28)"/>
+      <path d="M172 78 L177 78 L168 236 L163 236 Z" fill="rgba(255,255,255,.18)"/>
     </g>
     <ellipse cx="150" cy="70" rx="44" ry="7" fill="#EFD9AC"/>
+
+    <g transform="translate(150,55)">
+      <path d="M0 0 L-17 -10 L-17 5 Z" fill="#E8A0AA"/>
+      <path d="M0 0 L17 -10 L17 5 Z" fill="#E8A0AA"/>
+      <rect x="-4.5" y="-5" width="9" height="10" rx="2" fill="#DC8995"/>
+    </g>
   </svg>
   {% endif %}
 </div>
