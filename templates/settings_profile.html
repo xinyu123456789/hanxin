@@ -17,6 +17,7 @@
       <div class="card" style="margin-bottom:16px">
         <form method="post">
           {% csrf_token %}
+          {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
           {% for field in form %}
           <div style="margin-bottom:14px">
             <label style="font-size:13px;color:var(--ink-soft);display:block;margin-bottom:5px">

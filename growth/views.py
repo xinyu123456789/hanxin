@@ -6,7 +6,6 @@ from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 
 # 心情樹視覺化常數
-TREE_MAX_FRUITS   = 18        # 樹最多顯示幾顆果實
 TREE_GOLDEN_ANGLE = 2.399963  # 黃金角弧度（讓果實均勻分散）
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
@@ -103,10 +102,10 @@ class GrowView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         today = timezone.localdate()
 
-        # 本週起始（週一）
-        week_start = today - timedelta(days=today.weekday())
+        # 過去 7 天（含今天），避免整週沒上站就錯過回顧
+        week_start = today - timedelta(days=6)
 
-        # 誇誇列表（本週）— 評估為 list 一次，後面用 len() 不再查 DB
+        # 誇誇列表（過去 7 天）— 評估為 list 一次，後面用 len() 不再查 DB
         kudos_list = list(
             user.kudos.filter(
                 created_at__date__gte=week_start, is_deleted=False
@@ -128,7 +127,7 @@ class GrowView(LoginRequiredMixin, TemplateView):
         ctx["tasks"] = [(t, t.id in today_done_ids) for t in tasks]
         ctx["done_count"] = len(today_done_ids)
 
-        # ── 本週歷史任務（唯讀，每天獨立，供週回顧使用） ──
+        # ── 過去 7 天歷史任務（唯讀，每天獨立，供週回顧使用） ──
         week_logs = (
             DailyTaskLog.objects
             .filter(user=user, date__range=(week_start, today))
@@ -142,9 +141,9 @@ class GrowView(LoginRequiredMixin, TemplateView):
                 week_history[log.date] = []
             week_history[log.date].append(log.task)
 
-        # 轉成有序列表（週一到今天）
+        # 轉成有序列表（過去 7 天，含今天）
         week_days = []
-        for i in range(today.weekday() + 1):
+        for i in range(7):
             day = week_start + timedelta(days=i)
             week_days.append({
                 "date": day,
@@ -154,7 +153,7 @@ class GrowView(LoginRequiredMixin, TemplateView):
         ctx["week_days"] = week_days
         ctx["week_start"] = week_start
 
-        # 心情樹點數 = 本週誇誇 + 本週所有任務完成數
+        # 心情樹點數 = 過去 7 天誇誇 + 過去 7 天所有任務完成數
         week_kudos_count = len(kudos_list)   # 已是 list，len() 不查 DB
         week_task_count = sum(len(d["tasks_done"]) for d in week_days)
         ctx["tree_points"] = week_kudos_count + week_task_count
@@ -167,7 +166,7 @@ class GrowView(LoginRequiredMixin, TemplateView):
         # 視覺化座標（初始載入，全部果實都播入場動畫）
         ctx.update(_build_viz_ctx(user, tree_style, ctx["tree_points"]))
 
-        # 本週回顧（已生成就顯示，否則顯示生成按鈕）
+        # 近 7 天回顧（已生成就顯示，否則顯示生成按鈕）
         from growth.models import WeeklyReview
         existing = WeeklyReview.objects.filter(user=user, start_date=week_start).first()
         ctx["weekly_review"] = existing
@@ -220,7 +219,7 @@ def kudos_add(request):
     note = KudosNote.objects.create(user=request.user, praise_content=text)
 
     today = timezone.localdate()
-    week_start = today - timedelta(days=today.weekday())
+    week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
     week_kudos = request.user.kudos.filter(
         created_at__date__gte=week_start, is_deleted=False
     ).count()
@@ -252,9 +251,9 @@ def kudos_delete(request, note_id):
     note.deleted_at = timezone.now()
     note.save(update_fields=["is_deleted", "deleted_at"])
 
-    # 重新計算 tree_points（本週，排除已刪除）
+    # 重新計算 tree_points（過去 7 天，排除已刪除）
     today = timezone.localdate()
-    week_start = today - timedelta(days=today.weekday())
+    week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
     week_kudos = request.user.kudos.filter(
         created_at__date__gte=week_start, is_deleted=False
     ).count()
@@ -296,7 +295,7 @@ def task_toggle(request, task_id):
             user=request.user, date=today
         ).count()
 
-        week_start = today - timedelta(days=today.weekday())
+        week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
         week_kudos = request.user.kudos.filter(
             created_at__date__gte=week_start, is_deleted=False
         ).count()
@@ -363,10 +362,6 @@ def mood_checkin(request):
 @require_POST
 def review_generate(request):
     """HTMX：手動觸發生成（或重新生成）本週回顧。"""
-    ai_setting = getattr(request.user, "ai_setting", None)
-    if not ai_setting or not ai_setting.has_key:
-        return render(request, "_partials/_weekly_review_no_key.html")
-
     from .review import regenerate_review
     _, data = regenerate_review(request.user)
     return render(request, "_partials/_weekly_review.html", {"weekly_review_data": data})

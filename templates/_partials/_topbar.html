@@ -31,14 +31,6 @@
            @mouseleave="$el.style.background='transparent'">
           ⚙️ 個人設定
         </a>
-        <a href="{% url 'settings_ai' %}"
-           style="display:flex;align-items:center;gap:10px;padding:10px 12px;
-                  border-radius:10px;font-size:14px;font-weight:600;color:var(--ink);
-                  text-decoration:none;transition:background .14s"
-           @mouseenter="$el.style.background='var(--surface-sink)'"
-           @mouseleave="$el.style.background='transparent'">
-          🔑 AI 金鑰
-        </a>
         <div style="height:1px;background:var(--line);margin:4px 8px"></div>
         <a href="{% url 'account_logout' %}"
            style="display:flex;align-items:center;gap:10px;padding:10px 12px;

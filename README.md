@@ -15,8 +15,7 @@
 **涵心**是一個 Django 全端網站，目標是成為一個「不會傷人」的心理健康陪伴空間。它不追求功能堆疊，而是在每個設計決策上優先考慮使用者的情緒安全：
 
 - 看板**從資料結構上就無法留下負評**（只能貼天氣圖示，沒有自由文字欄位）。
-- AI 聊天有**三層危機偵測安全網**，寧可誤報、不可漏報，觸發時切換安全模式並浮出求助專線。
-- 私密內容（聊天、誇誇筆記、API 金鑰）一律**欄位級加密**儲存。
+- AI 聊天有**雙層危機偵測安全網**，寧可誤報、不可漏報，觸發時切換安全模式並浮出求助專線。
 
 ---
 
@@ -25,7 +24,7 @@
 | 模組 | 功能 |
 | --- | --- |
 | 🏠 **首頁 / 情境題** | 每日任務打卡、成長視覺、每日情境題（匿名訪客也能作答、分享觀點） |
-| 💬 **涵涵 AI 聊天** | 以 Google Gemini 為核心的串流對話（SSE），支援 BYOK 自帶金鑰 |
+| 💬 **涵涵 AI 聊天** | 以 Google Gemini 為核心的串流對話（SSE） |
 | 🌤️ **心情看板** | 去文字化設計，只用「天氣圖示」表達心情、用貼圖互相送暖，每日刷新 |
 | 🌱 **誇誇成長** | 私人加密的誇誇筆記、每日心情打卡與日曆、AI 自動生成的每週回顧 |
 | 📚 **心理資源** | 心理科普文章、專業量表、影片 / Podcast、含縣市與行政區篩選的診所指南 |
@@ -37,19 +36,20 @@
 
 這是這個專案最用心的部分。
 
-### 三層危機偵測安全網
+### 雙層危機偵測安全網
 當使用者在聊天中透露危機訊號時，系統會層層把關（設計原則：**寧可誤報，不可漏報**）：
 
 1. **關鍵字偵測** — 確定性、永遠可用，與 LLM 完全解耦（[`companion/crisis.py`](companion/crisis.py)）。
-2. **LLM 情緒評分** — 對對話脈絡評 1–10 分，分數 < 3 觸發危機；採三段降級鏈 **NVIDIA NIM → Groq 主模型 → Groq 備援模型**（[`companion/emotion.py`](companion/emotion.py)）。
-3. **降級備援** — 上述 LLM 全部失效時，自動退回關鍵字層，安全網不會斷。
+2. **Gemini 情緒評分** — 對對話脈絡評 1–10 分，分數 < 3 觸發危機（[`companion/emotion.py`](companion/emotion.py)）。
+
+若 Gemini 暫時失效，系統會自動退回關鍵字層，安全網不會中斷。
 
 觸發危機後：切換到安全模式 system prompt、浮出求助專線、並以**跨 session 的使用者層級狀態**維持 30 分鐘關懷窗口，所有事件寫入 `SOSLog` 稽核。
 
 ### 隱私優先
-- **欄位級加密**：聊天訊息、對話摘要、誇誇筆記、使用者的 Gemini 金鑰，皆以 Fernet 對稱加密儲存（[`accounts/crypto.py`](accounts/crypto.py)），加密金鑰與 `SECRET_KEY` 分開管理。
-- **BYOK（自帶金鑰）**：使用者用自己的 Gemini API 金鑰，加密存放、僅 server 端使用、可隨時移除。
-- **Argon2** 密碼雜湊、signed-cookie session、生產環境強制 HTTPS + HSTS。
+- **Argon2** 密碼雜湊、HTTPOnly + SameSite 的 signed-cookie session、生產環境強制 HTTPS + HSTS。
+- **訪客模式**：未登入也能瀏覽與打卡，任務狀態只存在瀏覽器 signed cookie，不寫入資料庫。
+- **軟刪除**：使用者撤回的看板貼文與誇誇筆記對外完全隱藏，後台仍保留稽核紀錄。
 
 ---
 
@@ -59,8 +59,8 @@
 - **非同步任務**：Celery + Celery Beat（每週日 20:00 自動產生週回顧）、Redis 作為 broker / 快取
 - **前端**：Django Templates + [HTMX](https://htmx.org/) + [Alpine.js](https://alpinejs.dev/)，WhiteNoise 處理靜態檔
 - **帳號**：django-allauth（以 **Email 取代 username** 登入）
-- **AI**：Google Gemini（聊天）、NVIDIA NIM / Groq（情緒評分）
-- **安全**：django-cryptography（欄位加密）、Argon2
+- **AI**：Google Gemini（聊天、情緒評分、週回顧，平台統一金鑰，各功能可分別指定模型）
+- **安全**：Argon2
 
 ---
 
@@ -69,7 +69,7 @@
 ```
 hanxin_mental_health_support_site/
 ├── core/          # 首頁、情境題、共用基底 model、模板 tags
-├── accounts/      # 自訂 User（email 登入）、個人檔案、AI 設定(BYOK)、偏好
+├── accounts/      # 自訂 User（email 登入）、個人檔案、偏好
 ├── companion/     # 涵涵 AI 聊天、三層危機偵測、SOS 稽核
 ├── board/         # 心情看板（去文字化、貼圖互動）
 ├── growth/        # 誇誇筆記、每日任務 / 心情、週回顧
@@ -145,8 +145,6 @@ python manage.py runserver
 
 開啟 http://127.0.0.1:8000 ，後台在 http://127.0.0.1:8000/admin/ 。
 
-> 💡 **AI 聊天**需要 Gemini 金鑰：登入後到「個人設定 → AI 金鑰」填入你自己的 Google Gemini API 金鑰即可開始對話。
-
 ### （選用）啟動 Celery 週回顧排程
 開發模式預設讓 Celery 同步執行，免啟動。若要在本機跑真實的排程器：
 
@@ -164,13 +162,12 @@ celery -A hanxin_mental_health_support_site beat   -l info
 | `DJANGO_SECRET_KEY` | ✅ | Django 簽章金鑰 |
 | `DATABASE_URL` | ✅ | PostgreSQL 連線字串，格式 `postgres://user:pass@host:5432/dbname` |
 | `REDIS_URL` | ✅ | Redis 連線字串（開發模式不會實際連線，但設定載入時需要有值） |
-| `FIELD_ENCRYPTION_KEY` | ✅ | 欄位加密用的 Fernet 金鑰（與 `SECRET_KEY` 分開管理） |
+| `FIELD_ENCRYPTION_KEY` | ✅ | Fernet 金鑰；設定載入時仍必填（與 `SECRET_KEY` 分開管理） |
 | `DJANGO_DEBUG` | ⬜ | 預設 `False`；`dev` 設定會覆寫為 `True` |
-| `GEMINI_DEFAULT_MODEL` | ⬜ | 預設 `gemini-2.5-flash` |
-| `NVIDIA_API_KEY` | ⬜ | 情緒評分第一順位（平台統一金鑰，留空則跳過此層） |
-| `GROQ_API_KEY` | ⬜ | 情緒評分備援（平台統一金鑰，留空則跳過此層） |
-
-> 使用者聊天用的 Gemini 金鑰採 BYOK，由各使用者於設定頁自行輸入、加密儲存，**不放在 `.env`**。
+| `GEMINI_API_KEY` | ✅ | Google Gemini API 金鑰（平台統一金鑰，全站功能共用） |
+| `GEMINI_MODEL_CHAT` | ⬜ | 涵涵聊天使用的模型，預設 `gemini-2.5-flash` |
+| `GEMINI_MODEL_EMOTION` | ⬜ | 情緒評分使用的模型，預設 `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL_REVIEW` | ⬜ | 週回顧敘事使用的模型，預設 `gemini-2.5-flash` |
 
 ---
 

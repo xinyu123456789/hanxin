@@ -45,10 +45,15 @@ class ArticleDetailView(DetailView):
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
-        # 每次開啟都遞增點擊數（F() 原子操作，避免 race condition）
-        PsychoArticle.objects.filter(pk=self.object.pk).update(
-            view_count=F("view_count") + 1
-        )
+        # 用 session 記錄本次瀏覽已計過數的文章，重整頁面不會重複累加
+        viewed_ids = request.session.setdefault("viewed_article_ids", [])
+        if self.object.pk not in viewed_ids:
+            # F() 原子操作，避免 race condition
+            PsychoArticle.objects.filter(pk=self.object.pk).update(
+                view_count=F("view_count") + 1
+            )
+            viewed_ids.append(self.object.pk)
+            request.session.modified = True
         # 登入用戶記錄「誰讀了哪篇」（每人每篇只記一次）
         if request.user.is_authenticated:
             ArticleView.objects.get_or_create(
@@ -59,10 +64,6 @@ class ArticleDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # 所有分類（供篩選 chips 用）
-        ctx["all_categories"] = list(
-            PsychoArticle.CATEGORY_CHOICES
-        )
         # 預設顯示同分類文章
         ctx["filter_category"] = self.object.category
         ctx["filtered_articles"] = (

@@ -1,9 +1,8 @@
-import random
-
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
@@ -11,6 +10,24 @@ from django.views.generic import TemplateView
 from .models import BoardPost, BoardReaction, PresetIcon, PresetMessage
 
 STICKER_KEYS = ["hug", "pat", "highfive", "warm"]
+DAILY_POST_LIMIT = 50  # 每位用戶每天最多發幾則心情
+
+
+def _build_posts_data(posts, user):
+    """將 BoardPost queryset 轉為模板需要的 posts_data（counts/mine/total）。
+    posts 應已 select_related/prefetch_related。"""
+    posts_data = []
+    for post in posts:
+        counts = {s: 0 for s in STICKER_KEYS}
+        mine = set()
+        for r in post.reactions.all():
+            counts[r.sticker] = counts.get(r.sticker, 0) + 1
+            if r.user_id == user.id:
+                mine.add(r.sticker)
+        posts_data.append({
+            "post": post, "counts": counts, "total": sum(counts.values()), "mine": mine,
+        })
+    return posts_data
 
 
 class BoardView(TemplateView):
@@ -30,37 +47,27 @@ class BoardView(TemplateView):
         posts = (
             BoardPost.objects
             .filter(is_deleted=False, created_at__date=today)
-            .select_related("preset_icon", "user")
+            .select_related("preset_icon", "preset_message", "user", "user__profile")
             .prefetch_related("reactions")
             .order_by("-created_at")[:100]
         )
 
-        all_words = _load_warm_words()   # 只查一次
-        posts_data = []
-        for post in posts:
-            counts = {s: 0 for s in STICKER_KEYS}
-            mine = set()
-            for r in post.reactions.all():
-                counts[r.sticker] = counts.get(r.sticker, 0) + 1
-                if r.user_id == user.id:
-                    mine.add(r.sticker)
-            posts_data.append({
-                "post": post,
-                "counts": counts,
-                "total": sum(counts.values()),
-                "mine": mine,
-                "warm_words": _warm_words_for_post(post.id, all_words),
-            })
-
-        ctx["posts_data"] = posts_data
-        ctx["preset_icons"] = PresetIcon.objects.filter(is_active=True)
-        ctx["warm_word"] = all_words[0] if all_words else "你不孤單"
+        ctx["posts_data"] = _build_posts_data(posts, user)
         pref = getattr(user, "preference", None)
         ctx["board_react"] = pref.board_react if pref else "tray"
         return ctx
 
 
-DAILY_POST_LIMIT = 50  # 每位用戶每天最多發幾則心情
+@login_required
+def board_post_create_view(request):
+    """發文頁面：選天氣與/或暖心語、選擇是否不匿名。"""
+    profile = getattr(request.user, "profile", None)
+    return render(request, "board_post_create.html", {
+        "preset_icons": PresetIcon.objects.filter(is_active=True),
+        "preset_messages": PresetMessage.objects.filter(is_active=True),
+        "message_categories": PresetMessage.CATEGORY_CHOICES,
+        "nickname": profile.nickname if profile else "",
+    })
 
 
 @login_required
@@ -72,20 +79,32 @@ def board_post(request):
         created_at__date=today,
     ).count()
     if today_count >= DAILY_POST_LIMIT:
-        return render(request, "_partials/_board_limit.html", {
-            "limit": DAILY_POST_LIMIT,
-        })
+        messages.error(request, f"今天的心情已分享很多了，每天最多 {DAILY_POST_LIMIT} 則，明天再來吧 🌱")
+        return redirect("board_post_create")
 
-    icon_id = request.POST.get("preset_icon_id")
-    icon = get_object_or_404(PresetIcon, pk=icon_id, is_active=True)
-    post = BoardPost.objects.create(user=request.user, preset_icon=icon)
-    counts = {s: 0 for s in STICKER_KEYS}
-    all_words = _load_warm_words()
-    return render(request, "_partials/_board_post.html", {
-        "pd": {"post": post, "counts": counts, "total": 0, "mine": set(),
-               "warm_words": _warm_words_for_post(post.id, all_words)},
-        "board_react": getattr(getattr(request.user, "preference", None), "board_react", "tray"),
-    })
+    icon_id = request.POST.get("preset_icon_id") or None
+    message_id = request.POST.get("preset_message_id") or None
+
+    icon = get_object_or_404(PresetIcon, pk=icon_id, is_active=True) if icon_id else None
+    preset_message = get_object_or_404(PresetMessage, pk=message_id, is_active=True) if message_id else None
+
+    if icon is None and preset_message is None:
+        messages.error(request, "請至少選擇一個天氣圖示或一句暖心語。")
+        return redirect("board_post_create")
+
+    show_nickname = request.POST.get("show_nickname") == "1"
+    is_anonymous = not show_nickname
+    if not is_anonymous:
+        profile = getattr(request.user, "profile", None)
+        if not profile or not profile.nickname.strip():
+            is_anonymous = True  # 安全網：沒暱稱就只能匿名
+
+    BoardPost.objects.create(
+        user=request.user, preset_icon=icon, preset_message=preset_message,
+        is_anonymous=is_anonymous,
+    )
+    messages.success(request, "已分享到心情看板 🌤️")
+    return redirect("board")
 
 
 @login_required
@@ -106,35 +125,42 @@ def board_delete(request, post_id):
 @login_required
 def board_mine(request):
     """個人心情頁：只看自己的貼文（非刪除），HTMX 局部載入。"""
-    user = self_user = request.user
+    user = request.user
     my_posts = (
         BoardPost.objects
         .filter(user=user, is_deleted=False)
-        .select_related("preset_icon")
+        .select_related("preset_icon", "preset_message", "user__profile")
         .prefetch_related("reactions")
         .order_by("-created_at")[:50]
     )
-    all_words = _load_warm_words()
-    posts_data = []
-    for post in my_posts:
-        counts = {s: 0 for s in STICKER_KEYS}
-        mine = set()
-        for r in post.reactions.all():
-            counts[r.sticker] = counts.get(r.sticker, 0) + 1
-            if r.user_id == user.id:
-                mine.add(r.sticker)
-        posts_data.append({
-            "post": post,
-            "counts": counts,
-            "total": sum(counts.values()),
-            "mine": mine,
-            "warm_words": _warm_words_for_post(post.id, all_words),
-        })
+    posts_data = _build_posts_data(my_posts, user)
     pref = getattr(user, "preference", None)
     return render(request, "_partials/_board_mine.html", {
         "posts_data": posts_data,
         "board_react": pref.board_react if pref else "tray",
-        "warm_word": all_words[0] if all_words else "你不孤單",
+    })
+
+
+def board_search(request):
+    """依暱稱搜尋「不匿名」貼文，跨全部歷史。訪客也可搜尋瀏覽（與 BoardView 一致）。"""
+    query = request.GET.get("nickname", "").strip()
+    posts_data = []
+    if query:
+        posts = (
+            BoardPost.objects
+            .filter(is_deleted=False, is_anonymous=False,
+                    user__profile__nickname__icontains=query)
+            .select_related("preset_icon", "preset_message", "user", "user__profile")
+            .prefetch_related("reactions")
+            .order_by("-created_at")[:50]
+        )
+        posts_data = _build_posts_data(posts, request.user)
+
+    pref = getattr(request.user, "preference", None) if request.user.is_authenticated else None
+    return render(request, "_partials/_board_search_results.html", {
+        "posts_data": posts_data,
+        "query": query,
+        "board_react": pref.board_react if pref else "tray",
     })
 
 
@@ -177,18 +203,4 @@ def board_react(request, post_id):
         "total": sum(counts.values()),
         "mine": mine,
         "board_react": getattr(getattr(request.user, "preference", None), "board_react", "tray"),
-        "warm_words": _warm_words_for_post(post.id, _load_warm_words()),
     })
-
-
-def _load_warm_words() -> list[str]:
-    """一次性撈所有暖心語（給 BoardView 用，查一次傳給所有貼文）。"""
-    words = list(PresetMessage.objects.filter(is_active=True).values_list("content", flat=True))
-    return words or ["你不孤單", "謝謝你願意說出來", "慢慢來，沒關係的"]
-
-
-def _warm_words_for_post(post_id: int, all_words: list[str], count: int = 3) -> list[str]:
-    """依貼文 ID 從已載入的暖心語列表中輪換取 count 條。"""
-    return [all_words[(post_id + i) % len(all_words)] for i in range(count)]
-
-

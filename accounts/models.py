@@ -3,7 +3,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from core.models import TimeStampedModel
-from .crypto import encrypt
 
 
 class UserManager(BaseUserManager):
@@ -90,41 +89,6 @@ class UserProfile(TimeStampedModel):
         return f"{self.user.email} 的個人檔案"
 
 
-class AISetting(TimeStampedModel):
-    """BYOK：使用者自帶的 Gemini 金鑰（欄位級加密）。"""
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="ai_setting"
-    )
-    gemini_api_key = encrypt(
-        models.CharField("Gemini API 金鑰", max_length=200, blank=True)
-    )
-    model_name = models.CharField(
-        "模型", max_length=60, blank=True, help_text="留空則使用系統預設"
-    )
-    key_verified_at = models.DateTimeField("金鑰驗證時間", null=True, blank=True)
-
-    class Meta:
-        verbose_name = "AI 設定"
-        verbose_name_plural = "AI 設定"
-
-    def __str__(self):
-        return f"{self.user.email} 的 AI 設定"
-
-    @property
-    def has_key(self) -> bool:
-        return bool(self.gemini_api_key)
-
-    @property
-    def key_masked(self) -> str:
-        k = self.gemini_api_key or ""
-        return f"••••••••{k[-4:]}" if len(k) >= 4 else ""
-
-    @property
-    def effective_model(self) -> str:
-        from django.conf import settings
-        return self.model_name or settings.GEMINI_DEFAULT_MODEL
-
-
 class UserPreference(TimeStampedModel):
     """使用者外觀與互動偏好（取代原型 Tweaks 旋鈕）。"""
     ACCENT_CHOICES = [
@@ -136,7 +100,6 @@ class UserPreference(TimeStampedModel):
     BOARD_REACT_CHOICES = [
         ("tray", "回應盤"),
         ("quick", "常駐"),
-        ("words", "暖心語"),
     ]
     TREE_STYLE_CHOICES = [
         ("tree", "心情樹"),

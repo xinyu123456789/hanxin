@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse, HttpResponseNotAllowed
@@ -9,18 +10,13 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
-from .decorators import requires_gemini_key
 from .models import ChatSession, AIChatLog, SOSLog
 from .crisis import detect_crisis
 from .emotion import score_emotion, is_crisis_by_score
 
 logger = logging.getLogger(__name__)
 
-FALLBACK_MESSAGE = (
-    "我在這裡。剛剛連線好像不太順，能再說一次嗎？"
-    "（如果你的金鑰失效了，可以到個人設定看看）"
-    "（但很有可能是你設定的 API Key 被你玩爆了）"
-)
+FALLBACK_MESSAGE = "我在這裡。剛剛連線好像不太順，能再說一次嗎？"
 
 
 def _session_list(user):
@@ -89,15 +85,12 @@ class ChatView(TemplateView):
         ctx["crisis_until_iso"] = (
             profile.crisis_until.isoformat() if profile and profile.crisis_until else ""
         )
-        ctx["has_key"] = getattr(
-            getattr(user, "ai_setting", None), "has_key", False
-        )
         if session:
             ctx["logs"] = session.logs.order_by("created_at")
         return ctx
 
 
-@requires_gemini_key
+@login_required
 @require_POST
 def chat_new(request):
     """開啟新對話：結束所有活躍 session，導向空白聊天頁。"""
@@ -121,10 +114,6 @@ def chat_stream_send(request):
     """串流聊天端點：SSE 格式逐字推送 AI 回應。"""
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
-
-    ai_setting = getattr(request.user, "ai_setting", None)
-    if not ai_setting or not ai_setting.has_key:
-        return JsonResponse({"error": "no_key"}, status=403)
 
     text = request.POST.get("message", "").strip()
     if not text:
@@ -161,7 +150,7 @@ def chat_stream_send(request):
         from accounts.models import UserProfile
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
-    # 主偵測：Groq LLM 語意評分
+    # 主偵測：Gemini 語意評分
     mood_score, mood_reason = score_emotion(session, text)
 
     if mood_score is not None:
@@ -169,7 +158,7 @@ def chat_stream_send(request):
         detector = "llm_score"
         kw_trigger = f"score:{mood_score}"
     else:
-        # Groq 失敗 → 降級到關鍵字備援
+        # Gemini 失敗 → 降級到關鍵字備援
         kw = detect_crisis(text)
         triggered = bool(kw)
         detector = "keyword_fallback"
@@ -205,8 +194,8 @@ def chat_stream_send(request):
         yield f"data: {json.dumps({'type':'meta','crisis':is_crisis,'just_entered_crisis':just_entered_crisis,'session_id':session.id,'is_new_session':is_new_session})}\n\n"
 
         # 組歷史 contents
-        client = genai.Client(api_key=ai_setting.gemini_api_key)
-        model  = ai_setting.effective_model
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        model  = settings.GEMINI_MODEL_CHAT
         system = CRISIS_SYSTEM_PROMPT if is_crisis else NORMAL_SYSTEM_PROMPT
 
         contents = []

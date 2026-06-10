@@ -82,7 +82,7 @@
   <div style="font-size:40px;margin-bottom:12px">😔</div>
   <p style="font-size:16px;font-weight:700;color:var(--ink);margin:0 0 6px">這次生成沒有成功</p>
   <p class="muted" style="margin:0 0 18px;font-size:14px;line-height:1.7">
-    可能是 AI 金鑰設定有問題，或是暫時連線失敗。<br/>稍後再試試看？
+    可能是暫時連線失敗。<br/>稍後再試試看？
   </p>
   <button class="btn"
           hx-post="{% url 'review_generate' %}"
@@ -104,7 +104,7 @@
         <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
            animation:typingBob 1.2s .36s infinite ease-in-out"></i>
       </span>
-      <span style="font-size:14px;color:var(--ink-soft)">涵涵正在整理這週的點滴，稍等一下…</span>
+      <span style="font-size:14px;color:var(--ink-soft)">涵涵正在整理這七天的點滴，稍等一下…</span>
     </div>
   </div>
 </div>
@@ -114,7 +114,7 @@
 {# ── 尚未生成 ── #}
 <div class="center" style="padding:32px 0">
   <div style="font-size:40px;margin-bottom:12px">📝</div>
-  <p class="muted" style="margin-bottom:16px">本週回顧還沒有生成</p>
+  <p class="muted" style="margin-bottom:16px">這七天的回顧還沒有生成</p>
 
   <button class="btn"
           hx-post="{% url 'review_generate' %}"
@@ -122,7 +122,7 @@
           hx-swap="innerHTML"
           hx-indicator="#review-loading-anim"
           hx-disabled-elt="this">
-    ✨ 生成本週回顧
+    ✨ 生成這七天回顧
   </button>
 
   <div id="review-loading-anim" class="htmx-indicator"
@@ -137,7 +137,7 @@
         <i style="width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;
            animation:typingBob 1.2s .36s infinite ease-in-out"></i>
       </span>
-      <span style="font-size:14px;color:var(--ink-soft)">涵涵正在整理這週的點滴，稍等一下…</span>
+      <span style="font-size:14px;color:var(--ink-soft)">涵涵正在整理這七天的點滴，稍等一下…</span>
     </div>
   </div>
 </div>

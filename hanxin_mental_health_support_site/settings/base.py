@@ -137,14 +137,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
 DJANGO_CRYPTOGRAPHY_KEY = FIELD_ENCRYPTION_KEY
 
-# Gemini 預設模型（使用者可在個人設定覆寫）
-GEMINI_DEFAULT_MODEL = env("GEMINI_DEFAULT_MODEL", default="gemini-2.5-flash")
-
-# 情緒評分：NVIDIA 優先，Groq 備援（平台統一金鑰，每則使用者訊息都打一次）
-NVIDIA_API_KEY = env("NVIDIA_API_KEY", default="")
-GROQ_API_KEY = env("GROQ_API_KEY", default="")
-GROQ_EMOTION_MODEL          = env("GROQ_EMOTION_MODEL",          default="openai/gpt-oss-120b")
-GROQ_EMOTION_MODEL_FALLBACK = env("GROQ_EMOTION_MODEL_FALLBACK", default="openai/gpt-oss-20b")
+# Gemini API（平台統一金鑰，各功能各自指定模型）
+GEMINI_API_KEY = env("GEMINI_API_KEY")
+GEMINI_MODEL_CHAT    = env("GEMINI_MODEL_CHAT",    default="gemini-2.5-flash")
+GEMINI_MODEL_EMOTION = env("GEMINI_MODEL_EMOTION", default="gemini-2.5-flash-lite")
+GEMINI_MODEL_REVIEW  = env("GEMINI_MODEL_REVIEW",  default="gemini-2.5-flash")
 
 # Celery
 CELERY_BROKER_URL = env("REDIS_URL")

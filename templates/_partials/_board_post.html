@@ -1,25 +1,39 @@
 {% load static %}
 <div id="board-post-{{ pd.post.id }}" class="card enter"
-     style="border-color:{% if pd.post.user == request.user %}{{ pd.post.preset_icon.ring_var }}{% else %}var(--line){% endif %}">
+     style="border-color:{% if pd.post.user == request.user %}{% if pd.post.preset_icon %}{{ pd.post.preset_icon.ring_var }}{% else %}var(--lilac){% endif %}{% else %}var(--line){% endif %}">
 
   <div class="row" style="gap:14px;align-items:flex-start">
+    {% if pd.post.preset_icon %}
     {# 天氣大圖 #}
     <div class="board-post-img" style="width:84px;height:84px;border-radius:20px;overflow:hidden;background:#fff;padding:5px;flex:0 0 auto;
       box-shadow:0 10px 20px -12px rgba(124,94,66,.55)">
       <img src="{% static pd.post.preset_icon.image_path %}" alt="{{ pd.post.preset_icon.label }}"
            style="width:100%;height:100%;object-fit:cover;border-radius:15px"/>
     </div>
+    {% endif %}
 
     {# 右側內容 #}
     <div style="flex:1;min-width:0">
       {# 標題列：心情名稱 + 時間 + 自己的標籤/撤回 #}
       <div class="row between" style="align-items:flex-start;gap:6px">
         <div style="flex:1;min-width:0">
-          <div class="row" style="gap:8px;flex-wrap:wrap">
+          <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+            {% if pd.post.preset_icon %}
             <span style="font-weight:700;font-size:17px">{{ pd.post.preset_icon.label }}</span>
+            {% else %}
+            <span style="font-weight:700;font-size:17px">💬 暖心語</span>
+            {% endif %}
+            {% if not pd.post.is_anonymous %}
+            <span class="tag b">{{ pd.post.user.profile.nickname|default:"匿名" }}</span>
+            {% endif %}
             <span class="faint" style="font-size:13px">· {{ pd.post.created_at|timesince }}前</span>
           </div>
+          {% if pd.post.preset_icon %}
           <p class="muted" style="margin:3px 0 0;font-size:14px">有人正經歷著「{{ pd.post.preset_icon.desc }}」</p>
+          {% endif %}
+          {% if pd.post.preset_message %}
+          <p style="margin:6px 0 0;font-size:15px;font-weight:600;color:var(--lilac-deep)">💬 {{ pd.post.preset_message.content }}</p>
+          {% endif %}
         </div>
 
         {% if pd.post.user == request.user %}
@@ -54,6 +68,6 @@
 
   {# 回應區 #}
   <div id="react-{{ pd.post.id }}" style="margin-top:14px;border-top:1.5px dashed var(--line);padding-top:14px">
-    {% include "_partials/_react_row.html" with post=pd.post counts=pd.counts total=pd.total mine=pd.mine board_react=board_react warm_words=pd.warm_words %}
+    {% include "_partials/_react_row.html" with post=pd.post counts=pd.counts total=pd.total mine=pd.mine board_react=board_react %}
   </div>
 </div>

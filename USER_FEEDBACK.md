@@ -51,9 +51,9 @@
 - [-] **Session 刪除加 loading 動畫**（HTMX 2.x 空 response + outerHTML swap 有已知問題，嘗試多種方式仍需兩次點擊，暫時擱置）
 
 ### 手機版
-- [ ] **首頁任務+樹的斷點改為 900px**（目前 500px，手機橫向 844px 仍是兩欄，文字還是會擠）
-- [ ] **Drawer 開啟時鎖定背景捲動**（drawer 開啟時背景聊天仍可滾動，容易誤觸）
-- [ ] **看板超小螢幕（<380px）天氣格子改 2 欄**（3 欄在 380px 以下標籤還是太擠）
+- [x] **首頁任務+樹的斷點改為 900px** ✅ 2026-06-10：`.home-main-grid` 改用獨立的 `@media (max-width: 900px)`
+- [x] **Drawer 開啟時鎖定背景捲動** ✅ 2026-06-10：新增 `openMobDrawer()`/`closeMobDrawer()`，開啟時 `document.body.style.overflow = 'hidden'`
+- [x] **看板超小螢幕（<380px）天氣格子改 2 欄** ✅ 2026-06-10：新增 `@media (max-width: 380px) { .mood-grid { grid-template-columns: repeat(2, 1fr) !important; } }`
 
 ### 設定頁面
 - [x] **改成左側 Menu 架構** ✅ `_settings_nav.html` partial，三頁共用，desktop 左側垂直 nav，mobile 頁頂 chip 列
@@ -79,7 +79,12 @@
 ## 🔵 架構層決策（需確認方向後才動）
 
 ### A. BYOK 金鑰設計
-- [x] **改善 AI 金鑰頁面的說明文案** ✅ 加說明卡（未設定金鑰時顯示）：解釋 BYOK 原因、AES-256 加密、僅 server 端使用、不用於其他用途、可隨時移除
+- [x] **改為平台統一 Gemini API Key** ✅ 2026-06-10：移除 `AISetting` model（含金鑰、`model_name`、`key_verified_at`）與其資料表、`/settings/ai/` 頁面、`GeminiKeyForm`、`accounts/gemini.py`、`requires_gemini_key` 裝飾器。改用 `settings.GEMINI_API_KEY`（單一平台金鑰），三個 AI 功能各自獨立指定模型：`GEMINI_MODEL_CHAT`（聊天）、`GEMINI_MODEL_EMOTION`（情緒評分）、`GEMINI_MODEL_REVIEW`（週回顧）。情緒評分同時由 NVIDIA NIM / Groq 三段降級鏈改為單一 Gemini JSON 模式呼叫，失敗時仍降級到關鍵字偵測。
+- [-] ~~改善 AI 金鑰頁面的說明文案~~（頁面已隨 BYOK 移除一併刪除，不再適用）
+
+### D. 欄位加密恢復（正式版前處理）
+- [ ] **`accounts/crypto.py` 加密機制目前已無任何欄位在用**：移除 `ChatSession.summary`（最後一個 `encrypt()` 欄位，且本來就是死欄位）後，`FIELD_ENCRYPTION_KEY` / `DJANGO_CRYPTOGRAPHY_KEY` / `requirements.txt` 的 `django-cryptography-django5` / `growth/models.py` 裡的 `from accounts.crypto import encrypt`（本來就是死 import）目前都沒有任何實際作用。`KudosNote.praise_content`、`AIChatLog.message_content` 的 docstring 仍寫「加密」，但實際欄位早已是純 `TextField`（`growth/migrations/0002_kudosnote_remove_encryption.py`、`companion/migrations/0003_aichatlog_remove_encryption.py` 已拿掉加密）。
+  - 正式版要重新替這些敏感欄位（誇誇筆記、聊天訊息等）加上 `encrypt()` 並補 migration；屆時再視情況決定是否保留/重啟整套 `accounts/crypto.py` + `FIELD_ENCRYPTION_KEY` 機制，或換新方案。
 
 ### B. 訪客模式 vs 完全會員制
 - [x] **實作訪客模式** ✅
@@ -112,21 +117,21 @@
 
 ## 🟡 深度檢查發現的小問題
 
-- [ ] **`growth/views.py` 的 `TREE_MAX_FRUITS = 18` 從未被使用**（可刪除）
-- [ ] **`board_mine` 有未使用變數 `self_user`**（第 109 行，`self_user = user` 從未被讀取）
-- [ ] **`HomeView` 的 `tasks.count()` 重複查 DB**（queryset 已被 evaluate 後再發 COUNT，改 `len(ctx["tasks"])` 即可）
-- [ ] **`ArticleDetailView` 傳了 `all_categories` 但模板已不使用**（dead context variable）
-- [ ] **`board/_load_warm_words()` 每次 board_post / board_react 都打一次 DB 沒有快取**
-- [ ] **`review_generate` view 沒有 try/except**（Gemini 失敗會直接 500 而非友善提示）
-- [ ] **文章瀏覽數每次重整都 +1**（`view_count` 沒有防重複機制，重整 10 次算 10 次）
+- [x] **`growth/views.py` 的 `TREE_MAX_FRUITS = 18` 從未被使用** ✅ 2026-06-10：已刪除
+- [x] **`board_mine` 有未使用變數 `self_user`** ✅ 已隨看板改版重寫，`self_user` 已不存在
+- [x] **`HomeView` 的 `tasks.count()` 重複查 DB** ✅ 2026-06-10：改用 `len(ctx["tasks"])`
+- [x] **`ArticleDetailView` 傳了 `all_categories` 但模板已不使用** ✅ 2026-06-10：已移除 dead context variable
+- [x] **`board/_load_warm_words()` 每次 board_post / board_react 都打一次 DB 沒有快取** ✅ 已隨看板改版整個移除（暖心語回應模式不存在了）
+- [x] **`review_generate` view 沒有 try/except** ✅ 確認已由 `generate_narrative()` 內的 try/except 處理（Gemini 失敗回傳空字串，模板顯示「😔 這次生成沒有成功」+ 重新嘗試按鈕），view 層不需額外處理
+- [x] **文章瀏覽數每次重整都 +1** ✅ 2026-06-10：`ArticleDetailView.get()` 改用 session 記錄已計數的文章 id，同一瀏覽器重整不再重複累加
 
 ---
 
 ## 🟡 用戶測試回饋新增功能（2026-06-04）
 
 ### 每日心情 check-in + 日曆
-- [ ] **每日心情 check-in**（皮克敏風格：每天晚上跳出提示，選一個心情 😢😐😄 打卡）
-- [ ] **心情日曆**（顯示過去一個月每天的心情記錄，視覺化情緒走向）
+- [x] **每日心情 check-in** ✅ `DailyMood` model（每人每天一筆，可當天更新），`grow.html` 今日心情打卡區，`mood_checkin` endpoint
+- [x] **心情日曆** ✅ `grow.html` 本月心情月曆，`mood_calendar_weeks` context，與打卡共用 Alpine scope 即時更新
 
 ### 情境題互動（首頁卡片）
 - [x] **情境題功能完整實作** ✅

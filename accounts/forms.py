@@ -3,23 +3,6 @@ from django import forms
 from .models import UserProfile, UserPreference
 
 
-class GeminiKeyForm(forms.Form):
-    """使用者輸入 BYOK Gemini API 金鑰。"""
-    gemini_api_key = forms.CharField(
-        label="你的 Gemini API 金鑰",
-        widget=forms.PasswordInput(
-            render_value=False,
-            attrs={
-                "placeholder": "貼上你的金鑰（AIza…）",
-                "autocomplete": "off",
-                "class": "form-input",
-            },
-        ),
-        required=True,
-        help_text="金鑰會加密保存，聊天內容會以你的金鑰送到你自己的 Google 帳號處理。",
-    )
-
-
 class ProfileForm(forms.ModelForm):
     """個人檔案設定表單。"""
 

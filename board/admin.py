@@ -12,16 +12,17 @@ class PresetIconAdmin(admin.ModelAdmin):
 
 @admin.register(PresetMessage)
 class PresetMessageAdmin(admin.ModelAdmin):
-    list_display = ["content", "is_active"]
-    list_editable = ["is_active"]
+    list_display = ["content", "category", "is_active"]
+    list_editable = ["category", "is_active"]
+    list_filter = ["category", "is_active"]
 
 
 @admin.register(BoardPost)
 class BoardPostAdmin(admin.ModelAdmin):
-    list_display = ["user", "preset_icon", "created_at"]
-    list_filter = ["preset_icon__emotion_type"]
-    search_fields = ["user__email"]
-    raw_id_fields = ["user", "preset_icon"]
+    list_display = ["user", "preset_icon", "preset_message", "is_anonymous", "created_at"]
+    list_filter = ["preset_icon__emotion_type", "is_anonymous", "is_deleted"]
+    search_fields = ["user__email", "user__profile__nickname"]
+    raw_id_fields = ["user", "preset_icon", "preset_message"]
     date_hierarchy = "created_at"
 
     def has_change_permission(self, request, obj=None):

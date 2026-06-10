@@ -35,6 +35,8 @@ urlpatterns = [
     # 心情看板
     path("board/", bv.BoardView.as_view(), name="board"),
     path("board/post/", bv.board_post, name="board_post"),
+    path("board/post/new/", bv.board_post_create_view, name="board_post_create"),
+    path("board/search/", bv.board_search, name="board_search"),
     path("board/<int:post_id>/delete/", bv.board_delete, name="board_delete"),
     path("board/<int:post_id>/react/", bv.board_react, name="board_react"),
     path("board/mine/", bv.board_mine, name="board_mine"),
@@ -57,7 +59,6 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
 
     # 個人設定
-    path("settings/ai/", av.settings_ai, name="settings_ai"),
     path("settings/profile/", av.settings_profile, name="settings_profile"),
     path("settings/appearance/", av.settings_appearance, name="settings_appearance"),
     path("settings/delete/", av.account_delete, name="account_delete"),

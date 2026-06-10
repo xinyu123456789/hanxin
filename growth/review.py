@@ -1,40 +1,41 @@
 """
-週回顧：收集本週所有活動，用 Gemini 生成溫柔的個人化敘事。
+週回顧：收集過去 7 天（含今天）的所有活動，用 Gemini 生成溫柔的個人化敘事。
 """
 import logging
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 REVIEW_PROMPT = """你是「涵涵」，涵心平台上溫柔的 AI 陪伴。
-請根據以下用戶本週的完整活動記錄，撰寫一份**個人化的週回顧報告**。
+請根據以下用戶最近 7 天的完整活動記錄，撰寫一份**個人化的回顧報告**。
 
 ---
 
 **輸出格式：使用 Markdown**，包含以下章節：
 
-## 🌸 本週的你
+## 🌸 這七天的你
 
-用 2-4 句溫柔的話開場，點出這週最有感的主題或情緒走向。
+用 2-4 句溫柔的話開場，點出這七天最有感的主題或情緒走向。
 
-## ✨ 這週你做到的事
+## ✨ 這七天你做到的事
 
-用條列式列出本週值得被看見的事情（誇誇筆記的內容、完成的任務模式、與涵涵聊天的頻率等），每條加一句鼓勵或同理。
+用條列式列出這七天值得被看見的事情（誇誇筆記的內容、完成的任務模式、與涵涵聊天的頻率等），每條加一句鼓勵或同理。
 
 ## 💬 心情的流動
 
-根據情緒分數趨勢、看板發布的天氣類型，描述這週情緒的高低起伏。
+根據情緒分數趨勢、看板發布的天氣類型，描述這七天情緒的高低起伏。
 若有危機事件，溫柔地表達你在乎，並肯定用戶願意說出來的勇氣。
 若情緒平均偏低，語氣要更多陪伴，讓用戶感覺被接住。
 
 ## 📚 補充能量
 
-列出本週閱讀的文章或資源，簡單說明這些內容和用戶這週狀態的連結。
-若沒有閱讀記錄，鼓勵他下週去看看心理資源頁面。
+列出這七天閱讀的文章或資源，簡單說明這些內容和用戶這段時間狀態的連結。
+若沒有閱讀記錄，鼓勵他之後找時間去看看心理資源頁面。
 
-## 🌱 給下週的自己
+## 🌱 給接下來的自己
 
 一段話，溫柔地祝福或邀請用戶繼續某件小事。
 語氣輕鬆，不施壓，像是朋友的叮嚀。
@@ -51,7 +52,7 @@ REVIEW_PROMPT = """你是「涵涵」，涵心平台上溫柔的 AI 陪伴。
 
 
 def collect_week_data(user, week_start, week_end) -> dict:
-    """收集用戶本週所有活動資料。"""
+    """收集用戶過去 7 天所有活動資料。"""
     from growth.models import KudosNote, DailyTask, DailyTaskLog, DailyMood
     from companion.models import AIChatLog, ChatSession, SOSLog
     from board.models import BoardPost, BoardReaction
@@ -94,7 +95,7 @@ def collect_week_data(user, week_start, week_end) -> dict:
         ).values("mood_score", "message_content")
     )
     mood_scores = [l["mood_score"] for l in chat_logs if l["mood_score"] is not None]
-    # avg_mood 只在有評分記錄時計算；None 表示本週 Groq 未成功評分
+    # avg_mood 只在有評分記錄時計算；None 表示本週 Gemini 未成功評分
     avg_mood = round(sum(mood_scores) / len(mood_scores), 1) if mood_scores else None
     # 情緒偏低的訊息則數（≤4分），與 avg_mood 使用同一來源，資料一致
     low_mood_messages = sum(1 for s in mood_scores if s <= 4)
@@ -195,7 +196,7 @@ def build_review_context(data: dict) -> str:
     lines = [
         f"【週期】{data['week_start']} ~ {data['week_end']}",
         "",
-        f"【誇誇筆記】本週共 {data['kudos_count']} 則",
+        f"【誇誇筆記】這 7 天共 {data['kudos_count']} 則",
     ]
     for k in data["kudos"]:
         lines.append(f"  · {k[:60]}")
@@ -259,18 +260,15 @@ def build_review_context(data: dict) -> str:
 
 def generate_narrative(user, data: dict) -> str:
     """用 Gemini 生成 Markdown 格式的週回顧敘事。失敗時回傳空字串。"""
-    ai_setting = getattr(user, "ai_setting", None)
-    if not ai_setting or not ai_setting.has_key:
-        return ""
     try:
         from google import genai
         from google.genai import types
 
         context_text = build_review_context(data)
-        client = genai.Client(api_key=ai_setting.gemini_api_key)
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
         resp = client.models.generate_content(
-            model=ai_setting.effective_model,
-            contents=f"以下是用戶本週的完整活動記錄：\n\n{context_text}\n\n請為他寫一份週回顧報告。",
+            model=settings.GEMINI_MODEL_REVIEW,
+            contents=f"以下是用戶最近 7 天的完整活動記錄：\n\n{context_text}\n\n請為他寫一份這七天的回顧報告。",
             config=types.GenerateContentConfig(
                 system_instruction=REVIEW_PROMPT,
                 temperature=0.8,
@@ -293,7 +291,7 @@ def get_or_generate_review(user):
     from growth.models import WeeklyReview
 
     today = timezone.localdate()
-    week_start = today - timedelta(days=today.weekday())
+    week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
 
     review, _ = WeeklyReview.objects.get_or_create(
         user=user,
@@ -317,7 +315,7 @@ def regenerate_review(user):
     from growth.models import WeeklyReview, WeeklyReviewVersion
 
     today = timezone.localdate()
-    week_start = today - timedelta(days=today.weekday())
+    week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
 
     data = collect_week_data(user, week_start, today)
     narrative = generate_narrative(user, data)

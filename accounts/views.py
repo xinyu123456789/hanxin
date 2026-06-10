@@ -2,57 +2,30 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import GeminiKeyForm, ProfileForm, AppearanceForm
-from .gemini import validate_key
-
-
-@login_required
-def settings_ai(request):
-    """BYOK 金鑰設定頁。"""
-    ai = request.user.ai_setting
-
-    if request.method == "POST":
-        if request.POST.get("action") == "remove":
-            ai.gemini_api_key = ""
-            ai.key_verified_at = None
-            ai.save()
-            messages.info(request, "已移除你的 Gemini 金鑰。")
-            return redirect("settings_ai")
-
-        form = GeminiKeyForm(request.POST)
-        if form.is_valid():
-            key = form.cleaned_data["gemini_api_key"].strip()
-            ok, err = validate_key(key)
-            if ok:
-                ai.gemini_api_key = key
-                ai.key_verified_at = timezone.now()
-                ai.save()
-                messages.success(request, "金鑰驗證成功，可以開始和涵涵聊天了 🧸")
-                return redirect("chat")
-            messages.error(request, f"這支金鑰好像不能用：{err}")
-    else:
-        form = GeminiKeyForm()
-
-    return render(request, "settings_ai.html", {"form": form, "ai": ai})
+from .forms import ProfileForm, AppearanceForm
 
 
 @login_required
 def settings_profile(request):
-    """個人檔案設定頁。"""
+    """個人檔案設定頁。支援 ?next= 在儲存後導回指定頁面（例如發文頁）。"""
     profile = request.user.profile
+    next_url = request.POST.get("next") or request.GET.get("next") or ""
 
     if request.method == "POST":
         form = ProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
             messages.success(request, "個人檔案已更新。")
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
             return redirect("settings_profile")
     else:
         form = ProfileForm(instance=profile)
 
-    return render(request, "settings_profile.html", {"form": form})
+    return render(request, "settings_profile.html", {"form": form, "next": next_url})
 
 
 @login_required
@@ -77,7 +50,7 @@ def settings_appearance(request):
 def account_delete(request):
     """帳號刪除（遺忘權）：級聯刪除所有加密資料。"""
     user = request.user
-    # Django CASCADE 自動刪除 Profile / AISetting / KudosNote / AIChatLog 等
+    # Django CASCADE 自動刪除 Profile / KudosNote / AIChatLog 等
     user.delete()
     messages.info(request, "你的帳號與所有資料已永久刪除。希望未來能再見到你。")
     return redirect("account_login")

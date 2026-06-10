@@ -225,7 +225,7 @@ class HomeView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
         today = timezone.localdate()
-        week_start = today - timedelta(days=today.weekday())
+        week_start = today - timedelta(days=6)  # 過去 7 天（含今天），與誇誇成長頁一致
 
         tasks = DailyTask.objects.filter(is_active=True)
 
@@ -252,7 +252,7 @@ class HomeView(TemplateView):
 
         ctx["tasks"] = [(t, t.id in done_ids) for t in tasks]
         ctx["done_count"] = len(done_ids)
-        ctx["task_total"] = tasks.count()
+        ctx["task_total"] = len(ctx["tasks"])
         ctx["tree_points"] = tree_points
         ctx["tree_style"] = tree_style
         ctx.update(_build_viz_ctx(user, tree_style, tree_points))

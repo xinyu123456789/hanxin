@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import User, UserProfile, AISetting, UserPreference
+from .models import User, UserProfile, UserPreference
 
 
 @admin.register(User)
@@ -39,25 +39,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     def is_in_crisis_display(self, obj):
         return "⚠️ 危機中" if obj.is_in_crisis else "—"
     is_in_crisis_display.short_description = "危機狀態"
-
-
-@admin.register(AISetting)
-class AISettingAdmin(admin.ModelAdmin):
-    list_display = ["user", "has_key_display", "model_name", "key_verified_at"]
-    search_fields = ["user__email"]
-    readonly_fields = ["key_verified_at", "key_masked_display"]
-    raw_id_fields = ["user"]
-
-    def has_key_display(self, obj):
-        return "✓ 已設定" if obj.has_key else "✗ 未設定"
-    has_key_display.short_description = "金鑰狀態"
-
-    def key_masked_display(self, obj):
-        return obj.key_masked
-    key_masked_display.short_description = "遮罩金鑰"
-
-    def get_fields(self, request, obj=None):
-        return ["user", "key_masked_display", "model_name", "key_verified_at"]
 
 
 @admin.register(UserPreference)

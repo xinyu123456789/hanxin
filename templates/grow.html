@@ -37,10 +37,10 @@
     </form>
   </div>
 
-  {# ── 本週任務進度（唯讀歷史，每天獨立記錄） ── #}
+  {# ── 這七天任務進度（唯讀歷史，每天獨立記錄） ── #}
   <div class="card" style="margin-bottom:16px">
     <div class="row between" style="margin-bottom:14px">
-      <h2 class="section-title" style="margin:0"><span class="dot"></span>本週任務進度</h2>
+      <h2 class="section-title" style="margin:0"><span class="dot"></span>這七天任務進度</h2>
       <span class="faint" style="font-size:12px">{{ week_start|date:"m/d" }} 起</span>
     </div>
     {% if week_days %}
@@ -74,13 +74,13 @@
       {% endfor %}
     </div>
     {% else %}
-    <p class="center muted" style="padding:16px 0">本週還沒有任務紀錄</p>
+    <p class="center muted" style="padding:16px 0">這七天還沒有任務紀錄</p>
     {% endif %}
   </div>
 
-  {# ── 本週誇誇筆記 ── #}
+  {# ── 這七天誇誇筆記 ── #}
   <div class="card" style="margin-bottom:16px">
-    <h2 class="section-title" style="margin:0 0 12px"><span class="dot"></span>本週誇誇筆記</h2>
+    <h2 class="section-title" style="margin:0 0 12px"><span class="dot"></span>這七天誇誇筆記</h2>
     <div id="kudos-list" style="max-height:420px;overflow-y:auto">
       {% for note in kudos %}
       <div id="kudos-note-{{ note.id }}"
@@ -114,7 +114,7 @@
         </div>
       </div>
       {% empty %}
-      <p class="center muted" style="padding:24px 0">本週還沒有誇誇，現在就寫第一則 💛</p>
+      <p class="center muted" style="padding:24px 0">這七天還沒有誇誇，現在就寫第一則 💛</p>
       {% endfor %}
     </div>
   </div>
@@ -200,11 +200,11 @@
   </div>
   </div>{# end 心情 Alpine wrapper #}
 
-  {# ── 本週回顧（Gemini 生成）── #}
+  {# ── 這七天回顧（Gemini 生成）── #}
   <div class="card" style="margin-bottom:16px">
     <div style="margin-bottom:16px">
       <h2 class="section-title" style="margin:0">
-        <span class="dot" style="background:var(--lilac-deep)"></span>本週回顧
+        <span class="dot" style="background:var(--lilac-deep)"></span>這七天回顧
       </h2>
     </div>
     <div id="weekly-review-content">

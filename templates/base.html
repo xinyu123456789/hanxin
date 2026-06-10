@@ -36,10 +36,12 @@
     select{ cursor:pointer; }
     /* 保留 .form-input class 相容性 */
     .form-input{ border-radius:16px; }
+    /* 首頁任務+樹：手機橫向（如 844px 寬）仍是兩欄會擠字，提前在 900px 改單欄 */
+    @media (max-width: 900px) {
+      .home-main-grid { grid-template-columns: 1fr !important; }
+    }
     /* 手機版響應式修正 */
     @media (max-width: 500px) {
-      /* 首頁任務+樹：手機版單欄，避免文字被擠成直排 */
-      .home-main-grid { grid-template-columns: 1fr !important; }
       /* grid-2 / grid-3 改單欄 */
       .grid-2 { grid-template-columns: 1fr !important; }
       .grid-3 { grid-template-columns: 1fr !important; }
@@ -49,6 +51,10 @@
       .board-post-img { width:60px !important; height:60px !important; }
       /* 防止任何元素溢出螢幕 */
       .screen { overflow-x: hidden; }
+    }
+    /* 看板超小螢幕：3 欄標籤太擠，改 2 欄 */
+    @media (max-width: 380px) {
+      .mood-grid { grid-template-columns: repeat(2, 1fr) !important; }
     }
     /* 頭像按鈕（topbar 帳號選單） */
     @media (max-width: 500px) {
@@ -76,10 +82,12 @@
       border:2px solid var(--line); background:var(--surface-2);
       cursor:pointer; position:relative; transition:all .18s;
     }
-    input[type="checkbox"]:checked{
+    input[type="checkbox"]:checked,
+    input[type="checkbox"].is-checked{
       background:var(--accent); border-color:var(--accent-deep);
     }
-    input[type="checkbox"]:checked::after{
+    input[type="checkbox"]:checked::after,
+    input[type="checkbox"].is-checked::after{
       content:"✓"; position:absolute; inset:0; display:grid;
       place-items:center; color:#fff; font-size:13px; font-weight:800;
     }

@@ -17,20 +17,6 @@
     </div>
   </div>
 
-  {% elif board_react == "words" %}
-  <div class="row wrap" style="gap:7px;margin-top:10px" x-data="{sent: null}">
-    {% for w in warm_words %}
-    <button type="button"
-            class="chip"
-            @click="sent = '{{ w|escapejs }}'"
-            :style="sent === '{{ w|escapejs }}' ? 'background:var(--lilac-tint);color:var(--lilac-deep);border-color:var(--lilac)' : ''"
-            style="cursor:pointer">
-      <span x-show="sent !== '{{ w|escapejs }}'">💬 {{ w }}</span>
-      <span x-show="sent === '{{ w|escapejs }}'" x-cloak>已送出 ✓</span>
-    </button>
-    {% endfor %}
-  </div>
-
   {% else %}
   {% include "_partials/_sticker_buttons.html" %}
   {% endif %}

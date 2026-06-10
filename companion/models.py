@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from core.models import TimeStampedModel
 from accounts.models import User
-from accounts.crypto import encrypt
 
 
 class ChatSession(TimeStampedModel):
@@ -18,7 +17,6 @@ class ChatSession(TimeStampedModel):
     crisis_since = models.DateTimeField("進入危機時間", null=True, blank=True)
     end_time = models.DateTimeField("結束時間", null=True, blank=True)
     is_deleted = models.BooleanField("已刪除", default=False)
-    summary = encrypt(models.TextField("摘要（加密）", blank=True))
 
     class Meta:
         verbose_name = "對話期間"
@@ -46,7 +44,7 @@ class AIChatLog(TimeStampedModel):
     sender = models.CharField("發送者", max_length=4, choices=SENDER_CHOICES)
     message_content = models.TextField("內容")
     crisis_flagged = models.BooleanField("危機標記", default=False)
-    # Groq LLM 情緒評分（1-10，僅 sender='user' 時有值）
+    # AI 情緒評分（1-10，僅 sender='user' 時有值）
     mood_score     = models.SmallIntegerField("情緒分數", null=True, blank=True)
     mood_reasoning = models.CharField("評分說明", max_length=100, blank=True)
 

@@ -101,20 +101,20 @@
     </div>
   </div>
 
-  {# ── 週回顧提醒（周日晚上 8 點後、本週尚未生成）── #}
+  {# ── 回顧提醒（周日晚上 8 點後、這七天尚未生成）── #}
   {% if show_review_reminder %}
   <div class="card knit enter" style="margin-top:20px;padding:22px 24px;
        background:linear-gradient(120deg,var(--lilac-tint),var(--sky-tint));border:2px solid var(--line)">
     <div class="row between wrap" style="gap:12px;align-items:center">
       <div>
         <div style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:4px">
-          ✨ 這週過得怎麼樣？
+          ✨ 這七天過得怎麼樣？
         </div>
         <p class="muted" style="margin:0;font-size:14px;line-height:1.6">
-          讓涵涵幫你整理這一週的點滴，生成專屬的週回顧。
+          讓涵涵幫你整理這七天的點滴，生成專屬回顧。
         </p>
       </div>
-      <a class="btn" href="{% url 'grow' %}" style="flex-shrink:0">去生成週回顧</a>
+      <a class="btn" href="{% url 'grow' %}" style="flex-shrink:0">去生成這七天回顧</a>
     </div>
   </div>
   {% endif %}
