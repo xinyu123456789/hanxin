@@ -16,6 +16,7 @@
 
 - 看板**從資料結構上就無法留下負評**（只能貼天氣圖示，沒有自由文字欄位）。
 - AI 聊天有**雙層危機偵測安全網**，寧可誤報、不可漏報，觸發時切換安全模式並浮出求助專線。
+- 誇誇筆記與 AI 對話內容**在資料庫中以加密形式儲存**，預設只有本人看得到。
 
 ---
 
@@ -23,12 +24,12 @@
 
 | 模組 | 功能 |
 | --- | --- |
-| 🏠 **首頁 / 情境題** | 每日任務打卡、成長視覺、每日情境題（匿名訪客也能作答、分享觀點） |
-| 💬 **涵涵 AI 聊天** | 以 Google Gemini 為核心的串流對話（SSE） |
-| 🌤️ **心情看板** | 去文字化設計，只用「天氣圖示」表達心情、用貼圖互相送暖，每日刷新 |
-| 🌱 **誇誇成長** | 私人加密的誇誇筆記、每日心情打卡與日曆、AI 自動生成的每週回顧 |
-| 📚 **心理資源** | 心理科普文章、專業量表、影片 / Podcast、含縣市與行政區篩選的診所指南 |
-| 👤 **帳號 / 設定** | Email 登入（django-allauth）、主題色 / 字級 / 成長視覺偏好、訪客模式 |
+| 🏠 **首頁** | 每日任務打卡（含訪客模式）、成長視覺即時預覽、隨機暖心語、每日情境題（單選或簡答，未登入也能作答並看大家怎麼選） |
+| 💬 **涵涵 AI 聊天** | Google Gemini 串流對話（SSE）、可建立多個對話 session、雙層危機偵測自動切換安全模式並浮出求助專線 |
+| 🌤️ **心情看板** | 去文字化設計（只能選天氣圖示 + 暖心語，無自由輸入框）、貼圖回應送暖（單篇限選一種）、每日刷新、依暱稱搜尋、個人心情牆、軟刪除 |
+| 🌱 **誇誇成長** | 加密保存的誇誇筆記、每日任務與心情打卡＋月曆回顧、4 種成長視覺風格（心情樹 / 花園 / 感謝罐 / 星空）、AI 每週敘事回顧（每週日更新一次） |
+| 📚 **心理資源** | 心理科普文章（含「AI 小說」「逐字稿」分類、依分類 / 熱門度排序）、專業量表、影片與 Podcast、診所指南（已預載全台近 700 間身心科 / 諮商所，可依縣市與行政區篩選並一鍵開啟 Google 地圖） |
+| 👤 **帳號 / 設定** | Email 登入（django-allauth）、個人檔案（暱稱、自我描述標籤、緊急聯絡人）、主題色 / 字級 / 成長視覺偏好、危險區域（清除聊天記錄、清除誇誇筆記、刪除帳號）、訪客模式 |
 
 ---
 
@@ -47,20 +48,24 @@
 觸發危機後：切換到安全模式 system prompt、浮出求助專線、並以**跨 session 的使用者層級狀態**維持 30 分鐘關懷窗口，所有事件寫入 `SOSLog` 稽核。
 
 ### 隱私優先
+- **欄位加密**：AI 聊天訊息（`AIChatLog.message_content`）與誇誇筆記（`KudosNote.praise_content`）以 Fernet（`django-cryptography`）加密儲存，金鑰（`FIELD_ENCRYPTION_KEY`）與 `SECRET_KEY` 分開管理。
+- **內容淨化**：AI 回覆與週回顧敘事以 Markdown 渲染後，會經 `bleach` 白名單過濾才輸出，避免 XSS。
 - **Argon2** 密碼雜湊、HTTPOnly + SameSite 的 signed-cookie session、生產環境強制 HTTPS + HSTS。
 - **訪客模式**：未登入也能瀏覽與打卡，任務狀態只存在瀏覽器 signed cookie，不寫入資料庫。
-- **軟刪除**：使用者撤回的看板貼文與誇誇筆記對外完全隱藏，後台仍保留稽核紀錄。
+- **軟刪除**：使用者撤回的看板貼文、聊天紀錄、誇誇筆記對外完全隱藏，後台仍保留稽核紀錄。
+- **刪除帳號（被遺忘權）**：可在設定頁一鍵刪除帳號，所有關聯資料（含加密內容）將一併清除。
 
 ---
 
 ## 🧱 技術棧
 
 - **後端**：Django 5.1、PostgreSQL（使用 `ArrayField` 等 PG 專屬功能）
-- **非同步任務**：Celery + Celery Beat（每週日 20:00 自動產生週回顧）、Redis 作為 broker / 快取
+- **非同步任務**：Celery + Celery Beat（每週日 20:00 自動產生週回顧統計）、Redis 作為 broker / 快取
 - **前端**：Django Templates + [HTMX](https://htmx.org/) + [Alpine.js](https://alpinejs.dev/)，WhiteNoise 處理靜態檔
 - **帳號**：django-allauth（以 **Email 取代 username** 登入）
-- **AI**：Google Gemini（聊天、情緒評分、週回顧，平台統一金鑰，各功能可分別指定模型）
-- **安全**：Argon2
+- **AI**：Google Gemini（聊天、情緒評分、週回顧敘事，三項功能各自可指定模型）
+- **安全與內容處理**：Argon2 密碼雜湊、django-cryptography（Fernet 欄位加密）、Markdown + bleach（內容渲染與淨化）
+- **測試**：pytest + pytest-django
 
 ---
 
@@ -70,7 +75,7 @@
 hanxin_mental_health_support_site/
 ├── core/          # 首頁、情境題、共用基底 model、模板 tags
 ├── accounts/      # 自訂 User（email 登入）、個人檔案、偏好
-├── companion/     # 涵涵 AI 聊天、三層危機偵測、SOS 稽核
+├── companion/     # 涵涵 AI 聊天、雙層危機偵測、SOS 稽核
 ├── board/         # 心情看板（去文字化、貼圖互動）
 ├── growth/        # 誇誇筆記、每日任務 / 心情、週回顧
 ├── resources/     # 心理科普文章、量表、診所指南
@@ -130,7 +135,7 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 ```bash
 python manage.py migrate
 
-# 載入預設資料（看板天氣圖示、每日任務、心理資源）
+# 載入預設資料（看板天氣圖示、每日任務、心理資源含全台診所指南）
 python manage.py loaddata board_presets growth_tasks resources_seed
 
 # 建立管理員帳號

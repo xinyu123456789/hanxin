@@ -2,7 +2,7 @@ from django.db import models
 
 from core.models import TimeStampedModel
 from accounts.models import User
-from accounts.crypto import encrypt
+from accounts.crypto import LenientEncryptedTextField
 
 
 class KudosNote(TimeStampedModel):
@@ -10,7 +10,7 @@ class KudosNote(TimeStampedModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="kudos"
     )
-    praise_content = models.TextField("內容")
+    praise_content = LenientEncryptedTextField("內容")
     is_deleted = models.BooleanField("已刪除", default=False)
     deleted_at  = models.DateTimeField("刪除時間", null=True, blank=True)
 

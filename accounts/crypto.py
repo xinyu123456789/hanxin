@@ -1,16 +1,24 @@
 """
 欄位加密輔助層。
 
-使用 django-cryptography-django5，它以 Fernet（對稱加密）包裹 Django ORM 欄位。
-加密/解密完全透明：model.field 直接存取已解密的值。
+LenientEncryptedTextField：寫入時以 Fernet 加密（透過 django-cryptography），
+讀取時優先嘗試解密；若資料是欄位改回加密前留下的舊版明文（Postgres 將舊
+text 欄位轉成 bytea 時，位元組內容就是原本的 UTF-8 字串），解密會因格式
+不符而拋出 BadSignature，此時退回直接以 UTF-8 解碼回傳，避免讀取舊資料時
+出錯。新寫入的資料一律是密文，不需要額外的資料回填 migration。
 """
-from django_cryptography.fields import encrypt  # noqa: F401  重新匯出，供 models.py 使用
+from django.core.signing import BadSignature
+from django.db import models
+from django.utils.encoding import force_str
+from django_cryptography.fields import encrypt
 
 
-def decrypt(value: str | None) -> str:
-    """
-    加密欄位在 attribute access 時已自動解密，此函式為語意明確的 no-op。
-    companion/gemini_chat.py 等地方呼叫 decrypt(log.message_content)，
-    實際上直接回傳已解密的值。
-    """
-    return value if value is not None else ""
+class LenientEncryptedTextField(encrypt(models.TextField)):
+    def deconstruct(self):
+        return models.Field.deconstruct(self)
+
+    def _load(self, value):
+        try:
+            return super()._load(value)
+        except BadSignature:
+            return force_str(value)

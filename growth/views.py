@@ -224,8 +224,11 @@ class GrowView(LoginRequiredMixin, TemplateView):
         ctx.update(_build_viz_ctx(user, tree_style, ctx["tree_points"]))
 
         # 近 7 天回顧（已生成就顯示，否則顯示生成按鈕）
+        # 「已生成」狀態以週日為界（每週日才換新一期），與上方過去 7 天的顯示資料分開判斷
         from growth.models import WeeklyReview
-        existing = WeeklyReview.objects.filter(user=user, start_date=week_start).first()
+        from .review import get_review_week_start
+        review_period_start = get_review_week_start(today)
+        existing = WeeklyReview.objects.filter(user=user, start_date=review_period_start).first()
         ctx["weekly_review"] = existing
         ctx["weekly_review_data"] = existing.summary_data if existing and existing.summary_data else {}
 

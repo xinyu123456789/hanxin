@@ -6,7 +6,7 @@ from .models import KudosNote, DailyTask, DailyTaskLog, WeeklyReview, WeeklyRevi
 @admin.register(KudosNote)
 class KudosNoteAdmin(admin.ModelAdmin):
     list_display = ["user", "praise_preview", "created_at"]
-    search_fields = ["user__email", "praise_content"]
+    search_fields = ["user__email"]
     raw_id_fields = ["user"]
     date_hierarchy = "created_at"
     readonly_fields = ["created_at"]

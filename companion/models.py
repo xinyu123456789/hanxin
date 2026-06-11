@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from core.models import TimeStampedModel
 from accounts.models import User
+from accounts.crypto import LenientEncryptedTextField
 
 
 class ChatSession(TimeStampedModel):
@@ -42,7 +43,7 @@ class AIChatLog(TimeStampedModel):
         ChatSession, on_delete=models.CASCADE, related_name="logs"
     )
     sender = models.CharField("發送者", max_length=4, choices=SENDER_CHOICES)
-    message_content = models.TextField("內容")
+    message_content = LenientEncryptedTextField("內容")
     crisis_flagged = models.BooleanField("危機標記", default=False)
     # AI 情緒評分（1-10，僅 sender='user' 時有值）
     mood_score     = models.SmallIntegerField("情緒分數", null=True, blank=True)

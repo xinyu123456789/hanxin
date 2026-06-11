@@ -9,6 +9,17 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+
+def get_review_week_start(today=None):
+    """
+    「這七天回顧」的週期起始日（週日）。
+    週期固定為週日～週六，只有在週日才會切換到下一期，
+    避免每天刷新導致回顧每天都要重新生成。
+    """
+    today = today or timezone.localdate()
+    return today - timedelta(days=(today.weekday() + 1) % 7)
+
+
 REVIEW_PROMPT = """你是「涵涵」，涵心平台上溫柔的 AI 陪伴。
 請根據以下用戶最近 7 天的完整活動記錄，撰寫一份**個人化的回顧報告**。
 
@@ -291,11 +302,12 @@ def get_or_generate_review(user):
     from growth.models import WeeklyReview
 
     today = timezone.localdate()
-    week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
+    week_start = today - timedelta(days=6)  # 過去 7 天（含今天），實際收集的資料範圍
+    period_start = get_review_week_start(today)  # 「已生成」狀態的週期 key，每週日才換新
 
     review, _ = WeeklyReview.objects.get_or_create(
         user=user,
-        start_date=week_start,
+        start_date=period_start,
         defaults={"end_date": today},
     )
 
@@ -315,7 +327,8 @@ def regenerate_review(user):
     from growth.models import WeeklyReview, WeeklyReviewVersion
 
     today = timezone.localdate()
-    week_start = today - timedelta(days=6)  # 過去 7 天（含今天）
+    week_start = today - timedelta(days=6)  # 過去 7 天（含今天），實際收集的資料範圍
+    period_start = get_review_week_start(today)  # 「已生成」狀態的週期 key，每週日才換新
 
     data = collect_week_data(user, week_start, today)
     narrative = generate_narrative(user, data)
@@ -324,7 +337,7 @@ def regenerate_review(user):
     # 更新「最新版」
     review, _ = WeeklyReview.objects.update_or_create(
         user=user,
-        start_date=week_start,
+        start_date=period_start,
         defaults={"end_date": today, "summary_data": data},
     )
 

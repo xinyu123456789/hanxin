@@ -52,7 +52,7 @@ class AIChatLogAdmin(admin.ModelAdmin):
     list_display  = ["session_user", "sender", "message_preview", "mood_badge_display",
                      "crisis_flagged", "created_at"]
     list_filter   = ["sender", "crisis_flagged"]
-    search_fields = ["session__user__email", "message_content"]
+    search_fields = ["session__user__email"]
     readonly_fields = ["session", "sender", "message_content", "mood_badge_display",
                        "mood_score", "mood_reasoning", "crisis_flagged", "created_at"]
     date_hierarchy = "created_at"
